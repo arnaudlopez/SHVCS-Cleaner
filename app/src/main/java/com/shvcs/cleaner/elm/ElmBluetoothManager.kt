@@ -1,45 +1,52 @@
 package com.shvcs.cleaner.elm
 
+import android.annotation.SuppressLint
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothSocket
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.OutputStream
-import java.net.InetSocketAddress
-import java.net.Socket
+import java.util.UUID
 
 /**
- * Manages the TCP socket connection to a WiFi ELM327 dongle.
+ * Manages the Bluetooth Classic SPP connection to an ELM327 dongle
+ * (e.g. Vgate vLinker MC+, OBDLink MX+, Vgate iCar Pro BT).
+ *
+ * Uses the same ELM327 AT command protocol as [ElmWifiManager],
+ * only the transport changes (Bluetooth SPP instead of TCP/WiFi).
  */
-class ElmWifiManager : ElmManager {
+class ElmBluetoothManager : ElmManager {
 
     companion object {
-        const val DEFAULT_IP = "192.168.0.10"
-        const val DEFAULT_PORT = 35000
-        const val CONNECT_TIMEOUT_MS = 5000
+        /** Standard Bluetooth SPP UUID */
+        val SPP_UUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
         const val READ_TIMEOUT_MS = 8000
     }
 
-    private var socket: Socket? = null
+    private var socket: BluetoothSocket? = null
     private var reader: BufferedReader? = null
     private var writer: OutputStream? = null
 
     override val isConnected: Boolean
-        get() = socket?.isConnected == true && socket?.isClosed == false
+        get() = socket?.isConnected == true
 
     /**
-     * Connect to the ELM327 dongle via TCP.
+     * Connect to a paired ELM327 Bluetooth device.
+     *
+     * @param device The BluetoothDevice to connect to (must already be paired)
      */
-    suspend fun connect(ip: String = DEFAULT_IP, port: Int = DEFAULT_PORT): Result<Unit> =
+    @SuppressLint("MissingPermission")
+    suspend fun connect(device: BluetoothDevice): Result<Unit> =
         withContext(Dispatchers.IO) {
             try {
                 disconnect()
-                val sock = Socket()
-                sock.connect(InetSocketAddress(ip, port), CONNECT_TIMEOUT_MS)
-                sock.soTimeout = READ_TIMEOUT_MS
-                reader = BufferedReader(InputStreamReader(sock.getInputStream()))
-                writer = sock.getOutputStream()
+                val sock = device.createRfcommSocketToServiceRecord(SPP_UUID)
+                sock.connect()
+                reader = BufferedReader(InputStreamReader(sock.inputStream))
+                writer = sock.outputStream
                 socket = sock
                 // Read any initial data the ELM sends on connect
                 readUntilPrompt()
@@ -81,7 +88,7 @@ class ElmWifiManager : ElmManager {
         }
 
     /**
-     * Read from the socket until we see the '>' prompt character.
+     * Read from the Bluetooth socket until we see the '>' prompt character.
      */
     private fun readUntilPrompt(): String {
         val sb = StringBuilder()

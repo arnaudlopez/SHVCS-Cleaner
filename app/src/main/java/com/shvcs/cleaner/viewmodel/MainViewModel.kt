@@ -4,6 +4,9 @@ import android.app.Application
 import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import android.bluetooth.BluetoothDevice
+import com.shvcs.cleaner.elm.ElmBluetoothManager
+import com.shvcs.cleaner.elm.ElmManager
 import com.shvcs.cleaner.elm.ElmWifiManager
 import com.shvcs.cleaner.elm.OBDProtocol
 import com.shvcs.cleaner.elm.UdsResponse
@@ -25,6 +28,8 @@ import org.json.JSONObject
 enum class ConnectionState {
     DISCONNECTED, CONNECTING, CONNECTED, RUNNING, AWAITING_KEY, UNLOCKING, SUCCESS, ERROR
 }
+
+enum class ConnectionMode { WIFI, BLUETOOTH }
 
 data class AppState(
     val connectionState: ConnectionState = ConnectionState.DISCONNECTED,
@@ -80,11 +85,17 @@ data class AppState(
     val dtcScanResult: DtcScanner.DtcScanResult? = null,
     /** Module currently being cleared (null if none) */
     val clearingModuleId: String? = null,
+    /** Connection mode: WiFi or Bluetooth */
+    val connectionMode: ConnectionMode = ConnectionMode.WIFI,
+    /** Connected Bluetooth device name (if applicable) */
+    val btDeviceName: String? = null,
 )
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val elm = ElmWifiManager()
+    private val wifiElm = ElmWifiManager()
+    private val btElm = ElmBluetoothManager()
+    private var elm: ElmManager = wifiElm
     private val _state = MutableStateFlow(AppState())
     val state: StateFlow<AppState> = _state.asStateFlow()
     private var liveJob: Job? = null
@@ -145,7 +156,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 logs = _state.value.logs + "Connecting to ${_state.value.elmIp}:${_state.value.elmPort}...",
                 errorMessage = null
             )
-            val result = elm.connect(_state.value.elmIp, _state.value.elmPort)
+            val result = wifiElm.connect(_state.value.elmIp, _state.value.elmPort)
             result.onSuccess {
                 _state.value = _state.value.copy(
                     logs = _state.value.logs + "✓ TCP connected to ELM327"
@@ -186,6 +197,70 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 )
             }
         }
+    }
+
+    /**
+     * Connect to an ELM327 dongle via Bluetooth.
+     */
+    @android.annotation.SuppressLint("MissingPermission")
+    fun connectBluetooth(device: BluetoothDevice) {
+        elm = btElm
+        viewModelScope.launch {
+            _state.value = _state.value.copy(
+                connectionState = ConnectionState.CONNECTING,
+                connectionMode = ConnectionMode.BLUETOOTH,
+                btDeviceName = device.name ?: device.address,
+                logs = _state.value.logs + "Connecting via Bluetooth to ${device.name ?: device.address}...",
+                errorMessage = null
+            )
+            val result = btElm.connect(device)
+            result.onSuccess {
+                _state.value = _state.value.copy(
+                    logs = _state.value.logs + "✓ Bluetooth connected to ELM327"
+                )
+
+                // Auto-init and read vehicle data
+                _state.value = _state.value.copy(
+                    connectionState = ConnectionState.RUNNING,
+                    progressStep = "Initializing..."
+                )
+                val initOk = OBDProtocol.executeInitAndReadData(elm, createListener())
+
+                if (initOk) {
+                    _state.value = _state.value.copy(
+                        connectionState = ConnectionState.CONNECTED,
+                        progress = 1f,
+                        progressStep = "Ready"
+                    )
+                    scanBattery()
+                } else {
+                    _state.value = _state.value.copy(
+                        connectionState = ConnectionState.CONNECTED,
+                        progress = 0f,
+                        progressStep = "Init failed",
+                        errorMessage = "ELM327 initialization failed — try again or check connection"
+                    )
+                }
+            }.onFailure { e ->
+                elm.disconnect()
+                _state.value = _state.value.copy(
+                    connectionState = ConnectionState.DISCONNECTED,
+                    logs = _state.value.logs + "✗ Bluetooth connection failed: ${e.message}",
+                    errorMessage = "Bluetooth failed: ${e.message}"
+                )
+            }
+        }
+    }
+
+    /**
+     * Set the connection mode (WiFi or Bluetooth) — used before connect.
+     */
+    fun setConnectionMode(mode: ConnectionMode) {
+        elm = when (mode) {
+            ConnectionMode.WIFI -> wifiElm
+            ConnectionMode.BLUETOOTH -> btElm
+        }
+        _state.value = _state.value.copy(connectionMode = mode)
     }
 
     fun disconnect() {

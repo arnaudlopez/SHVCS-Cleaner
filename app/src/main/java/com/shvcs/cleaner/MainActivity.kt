@@ -51,6 +51,7 @@ import com.shvcs.cleaner.elm.DtcParser
 import com.shvcs.cleaner.elm.DtcScanner
 import com.shvcs.cleaner.viewmodel.AppState
 import com.shvcs.cleaner.viewmodel.ConnectionState
+import com.shvcs.cleaner.viewmodel.ConnectionMode
 import com.shvcs.cleaner.viewmodel.MainViewModel
 import kotlin.math.PI
 import kotlin.math.cos
@@ -598,7 +599,8 @@ fun TopBar(
                     when (state.connectionState) {
                         ConnectionState.DISCONNECTED -> "Non connecté"
                         ConnectionState.CONNECTING -> "Connexion en cours…"
-                        ConnectionState.CONNECTED -> "Connecté — ${state.elmIp}"
+                        ConnectionState.CONNECTED -> if (state.connectionMode == ConnectionMode.BLUETOOTH)
+                            "Connecté — BT: ${state.btDeviceName}" else "Connecté — ${state.elmIp}"
                         ConnectionState.RUNNING -> state.progressStep
                         ConnectionState.AWAITING_KEY -> "Clé requise"
                         ConnectionState.UNLOCKING -> "Déverrouillage ECU…"

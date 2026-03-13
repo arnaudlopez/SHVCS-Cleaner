@@ -108,7 +108,7 @@ object OBDProtocol {
      *
      * @return true if init succeeded
      */
-    suspend fun executeInitAndReadData(elm: ElmWifiManager, listener: Listener): Boolean {
+    suspend fun executeInitAndReadData(elm: ElmManager, listener: Listener): Boolean {
         var currentStep = 0
 
         try {
@@ -233,7 +233,7 @@ object OBDProtocol {
      * Init and vehicle data reading should have been done already via [executeInitAndReadData].
      * Returns the seed value if successful, null otherwise.
      */
-    suspend fun executeUntilSeed(elm: ElmWifiManager, listener: Listener): String? {
+    suspend fun executeUntilSeed(elm: ElmManager, listener: Listener): String? {
         var currentStep = 0
 
         try {
@@ -275,7 +275,7 @@ object OBDProtocol {
      * and NRC 0x78 (response pending).
      */
     private suspend fun requestSeedWithRetry(
-        elm: ElmWifiManager,
+        elm: ElmManager,
         listener: Listener,
         retries: Int
     ): String? {
@@ -374,7 +374,7 @@ object OBDProtocol {
      *   4. Seed received → ECU ready, submit key immediately
      *   5. On unlock success → proceed to clear
      */
-    suspend fun testKeyValidity(elm: ElmWifiManager, key: String, listener: Listener): KeySubmitResult {
+    suspend fun testKeyValidity(elm: ElmManager, key: String, listener: Listener): KeySubmitResult {
         val baseStep = CAN_CONFIG_COMMANDS.size + 1
 
         try {
@@ -465,7 +465,7 @@ object OBDProtocol {
      *   4. Seed received → ECU ready, submit key immediately
      *   5. On unlock success → proceed to clear
      */
-    suspend fun executeUnlockAndClear(elm: ElmWifiManager, key: String, listener: Listener): KeySubmitResult {
+    suspend fun executeUnlockAndClear(elm: ElmManager, key: String, listener: Listener): KeySubmitResult {
         val baseStep = CAN_CONFIG_COMMANDS.size + 1
 
         try {
@@ -613,7 +613,7 @@ object OBDProtocol {
      * - Polling exhausted → [EcuReadiness.TIMEOUT]
      */
     private suspend fun pollEcuReadiness(
-        elm: ElmWifiManager,
+        elm: ElmManager,
         listener: Listener
     ): EcuReadiness {
         for (poll in 0 until MAX_READINESS_POLLS) {
@@ -777,7 +777,7 @@ object OBDProtocol {
      *
      * @return list of parsed DTC codes, empty if none found
      */
-    suspend fun readAllDtcs(elm: ElmWifiManager, listener: Listener): List<DtcParser.DtcCode> {
+    suspend fun readAllDtcs(elm: ElmManager, listener: Listener): List<DtcParser.DtcCode> {
         try {
             listener.onLog("")
             listener.onLog("═══ READING ALL DTCs ═══")
@@ -894,7 +894,7 @@ object OBDProtocol {
      *
      * @return true if at least one clear was successful
      */
-    suspend fun clearAllDtcsGeneric(elm: ElmWifiManager, listener: Listener): Boolean {
+    suspend fun clearAllDtcsGeneric(elm: ElmManager, listener: Listener): Boolean {
         var anySuccess = false
 
         try {
@@ -1013,7 +1013,7 @@ object OBDProtocol {
      * @param key the security key for HCPM2
      * @return KeySubmitResult indicating the outcome
      */
-    suspend fun clearAllDtcsUds(elm: ElmWifiManager, key: String, listener: Listener): KeySubmitResult {
+    suspend fun clearAllDtcsUds(elm: ElmManager, key: String, listener: Listener): KeySubmitResult {
         try {
             listener.onLog("")
             listener.onLog("═══ CLEARING DTCs — UDS SERVICE 0x14 (with security access) ═══")
@@ -1111,7 +1111,7 @@ object OBDProtocol {
      *
      * @return seed string, or null on failure
      */
-    suspend fun requestSeedForDtcClear(elm: ElmWifiManager, listener: Listener): String? {
+    suspend fun requestSeedForDtcClear(elm: ElmManager, listener: Listener): String? {
         try {
             listener.onLog("")
             listener.onLog("═══ SECURITY ACCESS FOR DTC CLEAR ═══")

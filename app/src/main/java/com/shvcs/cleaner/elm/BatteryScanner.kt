@@ -34,7 +34,7 @@ object BatteryScanner {
      * Lightweight ELM327 configuration — NO ATZ reset.
      * Assumes init was already done by OBDProtocol.executeInitAndReadData().
      */
-    private suspend fun configureElm(elm: ElmWifiManager, listener: Listener): Boolean {
+    private suspend fun configureElm(elm: ElmManager, listener: Listener): Boolean {
         val commands = listOf(
             "ATE0" to "Echo OFF",
             "ATL0" to "Linefeed OFF",
@@ -68,7 +68,7 @@ object BatteryScanner {
      * Switch CAN header to target module.
      */
     private suspend fun setHeader(
-        elm: ElmWifiManager,
+        elm: ElmManager,
         header: String,
         listener: Listener
     ): Boolean {
@@ -90,7 +90,7 @@ object BatteryScanner {
      * Works for both GM Service 1A PIDs and UDS Service 22 PIDs.
      */
     private suspend fun requestPid(
-        elm: ElmWifiManager,
+        elm: ElmManager,
         pid: String,
         description: String,
         listener: Listener,
@@ -121,7 +121,7 @@ object BatteryScanner {
      * Sequence from Voltage Q0 method:
      *   ATFCSH24C → ATFCSD300014 → ATFCSM1
      */
-    private suspend fun setupFlowControl(elm: ElmWifiManager, listener: Listener): Boolean {
+    private suspend fun setupFlowControl(elm: ElmManager, listener: Listener): Boolean {
         val commands = listOf(
             "ATFCSH24C" to "Flow Control Header → BECM",
             "ATFCSD300014" to "FC Data: BS=0, STmin=20ms",
@@ -144,7 +144,7 @@ object BatteryScanner {
     /**
      * Reset flow control mode back to automatic.
      */
-    private suspend fun resetFlowControl(elm: ElmWifiManager, listener: Listener) {
+    private suspend fun resetFlowControl(elm: ElmManager, listener: Listener) {
         listener.onLog("► ATFCSM0 (Reset FC to auto)")
         elm.sendCommand("ATFCSM0", timeoutMs = 2000L).onSuccess { resp ->
             listener.onLog("  ◄ ${resp.trim()}")
@@ -166,7 +166,7 @@ object BatteryScanner {
      *   3. Send 2702 + key → receive 6702 (granted)
      */
     private suspend fun performSecurityAccess(
-        elm: ElmWifiManager,
+        elm: ElmManager,
         listener: Listener
     ): Boolean {
         // ── Request Seed ──
@@ -257,7 +257,7 @@ object BatteryScanner {
      * Reads data from multiple CAN modules in the correct order,
      * matching Voltage app's protocol sequences.
      */
-    suspend fun scanBattery(elm: ElmWifiManager, listener: Listener): BatteryDataParser.BatteryData? {
+    suspend fun scanBattery(elm: ElmManager, listener: Listener): BatteryDataParser.BatteryData? {
         var step = 0
         var data = BatteryDataParser.BatteryData()
 
@@ -613,7 +613,7 @@ object BatteryScanner {
      * Much faster: stays on HPCM2 header, no header switch, no flow control.
      * Used by LiveMonitor for fast polling.
      */
-    suspend fun quickScan(elm: ElmWifiManager, listener: Listener): BatteryDataParser.BatteryData? {
+    suspend fun quickScan(elm: ElmManager, listener: Listener): BatteryDataParser.BatteryData? {
         try {
             // Read SOC (1A90 on 7E4 — header should already be set)
             val socResponse = requestPid(elm, Pids.HPCM2_SOC_RANGE, "SOC", listener, timeoutMs = 3000L)

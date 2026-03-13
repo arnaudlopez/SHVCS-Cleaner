@@ -48,7 +48,7 @@ object LiveMonitor {
      * fast polling and scanBattery() only for periodic full reads.
      */
     fun start(
-        elm: ElmWifiManager,
+        elm: ElmManager,
         config: Config = Config(),
         listener: Listener
     ): Flow<LiveDataPoint> = flow {
@@ -129,7 +129,7 @@ object LiveMonitor {
     /**
      * Lightweight one-time configure for monitoring — NO ATZ.
      */
-    private suspend fun configureForLive(elm: ElmWifiManager, listener: Listener): Boolean {
+    private suspend fun configureForLive(elm: ElmManager, listener: Listener): Boolean {
         val commands = listOf("ATE0", "ATL0", "ATS0", "ATH0", "ATSP6", "ATCAF1")
         for (cmd in commands) {
             val result = elm.sendCommand(cmd, timeoutMs = 2000L)

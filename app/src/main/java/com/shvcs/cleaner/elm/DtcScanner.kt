@@ -82,7 +82,7 @@ object DtcScanner {
      * @return DtcScanResult with per-module breakdown
      */
     suspend fun scanAllModules(
-        elm: ElmWifiManager,
+        elm: ElmManager,
         listener: Listener
     ): DtcScanResult {
         val moduleResults = mutableListOf<ModuleDtcs>()
@@ -143,7 +143,7 @@ object DtcScanner {
      * Scan a single module for DTCs.
      */
     private suspend fun scanSingleModule(
-        elm: ElmWifiManager,
+        elm: ElmManager,
         requestId: String,
         responseId: String,
         name: String,
@@ -208,7 +208,7 @@ object DtcScanner {
     /**
      * Try GM-specific DTC read command (12 01).
      */
-    private suspend fun tryGmDtcRead(elm: ElmWifiManager, listener: Listener): List<DtcParser.DtcCode> {
+    private suspend fun tryGmDtcRead(elm: ElmManager, listener: Listener): List<DtcParser.DtcCode> {
         listener.onLog("► $GM_READ_DTC (GM Read DTC)")
         val result = elm.sendCommand(GM_READ_DTC, timeoutMs = 8000L)
         result.onSuccess { response ->
@@ -246,7 +246,7 @@ object DtcScanner {
      * @return true if clear was successful
      */
     suspend fun clearModuleDtcs(
-        elm: ElmWifiManager,
+        elm: ElmManager,
         moduleId: String,
         moduleName: String,
         listener: Listener,
@@ -382,7 +382,7 @@ object DtcScanner {
      * @return true if security access was granted
      */
     private suspend fun performSecurityAccess(
-        elm: ElmWifiManager,
+        elm: ElmManager,
         listener: Listener
     ): Boolean {
         // ── Step 1: Request Seed with retry on NRC 0x37 ──
@@ -522,7 +522,7 @@ object DtcScanner {
      * @return true if the condition was cleared (EEFC response)
      */
     private suspend fun sendAeClearCommand(
-        elm: ElmWifiManager,
+        elm: ElmManager,
         command: String,
         dtcLabel: String,
         listener: Listener
@@ -571,7 +571,7 @@ object DtcScanner {
     /**
      * Fallback: generic OBD-II Mode 04 clear.
      */
-    private suspend fun tryGenericClear(elm: ElmWifiManager, listener: Listener): Boolean {
+    private suspend fun tryGenericClear(elm: ElmManager, listener: Listener): Boolean {
         listener.onLog("► 04 (OBD-II Generic Clear)")
         val result = elm.sendCommand("04", timeoutMs = 8000L)
         result.onSuccess { response ->
@@ -588,7 +588,7 @@ object DtcScanner {
     /**
      * Configure ELM327 for DTC scanning.
      */
-    private suspend fun configureForDtcScan(elm: ElmWifiManager, listener: Listener) {
+    private suspend fun configureForDtcScan(elm: ElmManager, listener: Listener) {
         val commands = listOf(
             "ATE0" to "Echo OFF",
             "ATL0" to "Linefeed OFF",
