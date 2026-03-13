@@ -279,7 +279,45 @@ object DtcScanner {
                 listener.onLog("  ✓ Authenticated — proceeding to clear")
             }
 
-            // ── Send clear command ──
+            // ── HPCM2-specific: Send GM AE commands for HV condition clear ──
+            if (moduleId.uppercase() == "7E4") {
+                listener.onLog("")
+                listener.onLog("── HV Condition Clear (GM AE Service) ──")
+
+                // AE command 1: Clear P0A46 (HV Battery System Performance)
+                listener.onLog("► AEFC0200004600 (Clear HV P0A46)")
+                elm.sendCommand("AEFC0200004600", timeoutMs = 5000L).onSuccess { resp ->
+                    val clean = resp.replace(" ", "").replace("\r", "").replace("\n", "").lowercase()
+                    listener.onLog("  ◄ ${resp.trim()}")
+                    if (clean.contains("eefc")) {
+                        listener.onLog("  ✓ P0A46 condition cleared")
+                    } else if (clean.contains("7fae")) {
+                        val nrc = clean.substringAfter("7fae").take(2)
+                        listener.onLog("  ⚠ P0A46 clear NRC: $nrc (may not be active)")
+                    }
+                }.onFailure { e ->
+                    listener.onLog("  ⚠ P0A46 clear error: ${e.message}")
+                }
+                kotlinx.coroutines.delay(500)
+
+                // AE command 2: Clear P0A49 (HV Battery System)
+                listener.onLog("► AEFC0200004900 (Clear HV P0A49)")
+                elm.sendCommand("AEFC0200004900", timeoutMs = 5000L).onSuccess { resp ->
+                    val clean = resp.replace(" ", "").replace("\r", "").replace("\n", "").lowercase()
+                    listener.onLog("  ◄ ${resp.trim()}")
+                    if (clean.contains("eefc")) {
+                        listener.onLog("  ✓ P0A49 condition cleared")
+                    } else if (clean.contains("7fae")) {
+                        val nrc = clean.substringAfter("7fae").take(2)
+                        listener.onLog("  ⚠ P0A49 clear NRC: $nrc (may not be active)")
+                    }
+                }.onFailure { e ->
+                    listener.onLog("  ⚠ P0A49 clear error: ${e.message}")
+                }
+                kotlinx.coroutines.delay(500)
+            }
+
+            // ── Send UDS clear command ──
             listener.onLog("► $UDS_CLEAR_DTC (Clear All DTCs)")
             val result = elm.sendCommand(UDS_CLEAR_DTC, timeoutMs = 8000L)
 
