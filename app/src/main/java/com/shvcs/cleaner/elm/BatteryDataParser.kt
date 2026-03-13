@@ -59,9 +59,17 @@ object BatteryDataParser {
 
         // ── Charger ──
         val chargingState: String? = null,    // "Charging", "Not Charging", etc.
-        val chargerAcPower: Float? = null,    // AC input power (kW)
-        val chargerHvPower: Float? = null,    // HV output power (kW)
+        val chargerAcPower: Float? = null,    // AC input power (kW)  — from 1AA3
+        val chargerHvPower: Float? = null,    // HV output power (kW) — from 1AA3
         val chargingCurrent: Float? = null,   // Charging current (A)
+
+        // ── Charger Extended (from 1AA5, 1ACB, 1ACC — requires auth) ──
+        val chargerInputVoltage: Float? = null,  // AC input voltage (V)  — from 1AA5
+        val chargerInputCurrent: Float? = null,  // AC input current (A)  — from 1AA5
+        val chargerOutputVoltage: Float? = null,  // DC output voltage (V) — from 1ACB
+        val chargerOutputCurrent: Float? = null,  // DC output current (A) — from 1ACB
+        val chargerEfficiency: Float? = null,     // Charger efficiency (%) — computed
+        val chargerLimitReason: String? = null,   // Limit reason text     — from 1ACC
 
         // ── Thermal Management ──
         val activeHeating: Boolean = false,
@@ -359,6 +367,86 @@ object BatteryDataParser {
         )
     }
 
+    /**
+     * Parse PID 1AA5 response (Charger data set 2 — requires auth).
+     *
+     * Response: 5AA5 + data bytes
+     * - Byte 0-1: AC Input Voltage (uint16 / 100.0) → Volts
+     * - Byte 2-3: AC Input Current (uint16 / 100.0) → Amps
+     */
+    fun parseCharger2(response: String): BatteryData? {
+        val clean = response.replace(" ", "").lowercase()
+        val idx = clean.indexOf(HPCM2_CHARGER_2_R.lowercase())
+        if (idx < 0) return null
+
+        val payload = clean.substring(idx + 4) // skip "5AA5"
+        val bytes = hexToBytes(payload)
+        if (bytes.size < 4) return null
+
+        val acVoltage = uint16(bytes, 0)?.let { it / 100.0f }
+        val acCurrent = uint16(bytes, 2)?.let { it / 100.0f }
+
+        return BatteryData(
+            chargerInputVoltage = acVoltage,
+            chargerInputCurrent = acCurrent
+        )
+    }
+
+    /**
+     * Parse PID 1ACB response (Charger data set 3).
+     *
+     * Response: 5ACB + data bytes
+     * - Byte 0-1: DC Output Voltage (uint16 / 100.0) → Volts
+     * - Byte 2-3: DC Output Current (uint16 / 100.0) → Amps
+     */
+    fun parseCharger3(response: String): BatteryData? {
+        val clean = response.replace(" ", "").lowercase()
+        val idx = clean.indexOf(HPCM2_CHARGER_3_R.lowercase())
+        if (idx < 0) return null
+
+        val payload = clean.substring(idx + 4) // skip "5ACB"
+        val bytes = hexToBytes(payload)
+        if (bytes.size < 4) return null
+
+        val dcVoltage = uint16(bytes, 0)?.let { it / 100.0f }
+        val dcCurrent = uint16(bytes, 2)?.let { it / 100.0f }
+
+        return BatteryData(
+            chargerOutputVoltage = dcVoltage,
+            chargerOutputCurrent = dcCurrent
+        )
+    }
+
+    /**
+     * Parse PID 1ACC response (Charger data set 4).
+     *
+     * Response: 5ACC + data bytes
+     * - Byte 0: Charger limit reason code
+     * - Byte 1-2: Additional charger status data
+     */
+    fun parseCharger4(response: String): BatteryData? {
+        val clean = response.replace(" ", "").lowercase()
+        val idx = clean.indexOf(HPCM2_CHARGER_4_R.lowercase())
+        if (idx < 0) return null
+
+        val payload = clean.substring(idx + 4) // skip "5ACC"
+        val bytes = hexToBytes(payload)
+        if (bytes.isEmpty()) return null
+
+        val limitCode = uint8(bytes, 0)
+        val limitReason = when (limitCode) {
+            0 -> "No Limit"
+            1 -> "Temperature"
+            2 -> "Voltage"
+            3 -> "Current"
+            4 -> "Timer"
+            5 -> "SOC Target"
+            else -> "Code $limitCode"
+        }
+
+        return BatteryData(chargerLimitReason = limitReason)
+    }
+
     // ═══════════════════════════════════════════════════════════
     // Response Parsers — UDS Service 22
     // ═══════════════════════════════════════════════════════════
@@ -477,6 +565,9 @@ object BatteryDataParser {
     private const val HPCM2_BATTERY_R   = "5AB0"
     private const val HPCM2_BECM_INFO_R = "5AB4"
     private const val HPCM2_CHARGER_1_R = "5AA3"
+    private const val HPCM2_CHARGER_2_R = "5AA5"
+    private const val HPCM2_CHARGER_3_R = "5ACB"
+    private const val HPCM2_CHARGER_4_R = "5ACC"
     private const val HPCM2_CELLS_R     = "5ADF"
 
     // ═══════════════════════════════════════════════════════════
@@ -511,6 +602,12 @@ object BatteryDataParser {
                 chargerAcPower = part.chargerAcPower ?: result.chargerAcPower,
                 chargerHvPower = part.chargerHvPower ?: result.chargerHvPower,
                 chargingCurrent = part.chargingCurrent ?: result.chargingCurrent,
+                chargerInputVoltage = part.chargerInputVoltage ?: result.chargerInputVoltage,
+                chargerInputCurrent = part.chargerInputCurrent ?: result.chargerInputCurrent,
+                chargerOutputVoltage = part.chargerOutputVoltage ?: result.chargerOutputVoltage,
+                chargerOutputCurrent = part.chargerOutputCurrent ?: result.chargerOutputCurrent,
+                chargerEfficiency = part.chargerEfficiency ?: result.chargerEfficiency,
+                chargerLimitReason = part.chargerLimitReason ?: result.chargerLimitReason,
                 activeHeating = part.activeHeating || result.activeHeating,
                 activeCooling = part.activeCooling || result.activeCooling,
                 batteryHeaterPower = part.batteryHeaterPower ?: result.batteryHeaterPower,

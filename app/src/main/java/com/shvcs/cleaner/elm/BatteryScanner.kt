@@ -28,7 +28,7 @@ object BatteryScanner {
         fun onError(error: String)
     }
 
-    private const val TOTAL_SCAN_STEPS = 12
+    private const val TOTAL_SCAN_STEPS = 14  // includes auth + BECM charger reads
 
     /**
      * Lightweight ELM327 configuration — NO ATZ reset.
@@ -151,6 +151,102 @@ object BatteryScanner {
         }
         kotlinx.coroutines.delay(100)
     }
+
+    // ═══════════════════════════════════════════════════════════
+    // Security Access (2701/2702) for authenticated reads
+    // ═══════════════════════════════════════════════════════════
+
+    /**
+     * Perform UDS Security Access on the currently selected module.
+     * Prerequisite: ATSH must already be set (e.g. ATSH7E4 for HPCM2).
+     *
+     * Sequence (matching Voltage T0 method):
+     *   1. Send 2701 (Request Seed) → receive 6701 + seed
+     *   2. Look up key via SeedKeyGenerator
+     *   3. Send 2702 + key → receive 6702 (granted)
+     */
+    private suspend fun performSecurityAccess(
+        elm: ElmWifiManager,
+        listener: Listener
+    ): Boolean {
+        // ── Request Seed ──
+        listener.onLog("► 2701 (Request Seed)")
+        val seedResult = elm.sendCommand("2701", timeoutMs = 5000L)
+        var extractedSeed: String? = null
+
+        seedResult.onSuccess { response ->
+            val clean = response.replace(" ", "").replace("\r", "").replace("\n", "").lowercase()
+            listener.onLog("  ◄ ${response.trim()}")
+
+            when {
+                clean.contains("6701") -> {
+                    val seedIdx = clean.indexOf("6701")
+                    val seedStart = if (clean.contains("046701")) {
+                        clean.indexOf("046701") + 6
+                    } else {
+                        seedIdx + 4
+                    }
+                    if (seedStart + 4 <= clean.length) {
+                        extractedSeed = clean.substring(seedStart, seedStart + 4).uppercase()
+                        listener.onLog("  ✓ Seed: $extractedSeed")
+                    }
+                }
+                clean.contains("7f2737") -> {
+                    listener.onLog("  ⚠ Time delay — retrying in 10s...")
+                    kotlinx.coroutines.delay(10_000)
+                    // Single retry
+                    val retry = elm.sendCommand("2701", timeoutMs = 5000L)
+                    retry.onSuccess { r2 ->
+                        val c2 = r2.replace(" ", "").replace("\r", "").replace("\n", "").lowercase()
+                        if (c2.contains("6701")) {
+                            val si = c2.indexOf("6701")
+                            val ss = if (c2.contains("046701")) c2.indexOf("046701") + 6 else si + 4
+                            if (ss + 4 <= c2.length) extractedSeed = c2.substring(ss, ss + 4).uppercase()
+                        }
+                    }
+                }
+                clean.contains("7f2736") -> {
+                    listener.onLog("  ✗ ECU locked")
+                }
+                else -> {
+                    listener.onLog("  ⚠ No seed in response")
+                }
+            }
+        }.onFailure { e ->
+            listener.onLog("  ✗ Seed error: ${e.message}")
+            return false
+        }
+
+        if (extractedSeed == null) return false
+
+        // ── Compute key ──
+        val key = SeedKeyGenerator.generateKey(extractedSeed!!)
+        if (key == null) {
+            listener.onLog("  ✗ No key for seed $extractedSeed")
+            return false
+        }
+        listener.onLog("  ✓ Key: $key")
+
+        // ── Submit key ──
+        val keyCmd = "042702$key"
+        listener.onLog("► $keyCmd (Submit Key)")
+        val keyResult = elm.sendCommand(keyCmd, timeoutMs = 5000L)
+
+        keyResult.onSuccess { response ->
+            val clean = response.replace(" ", "").replace("\r", "").replace("\n", "").lowercase()
+            listener.onLog("  ◄ ${response.trim()}")
+            if (clean.contains("6702")) {
+                listener.onLog("  ✓ Security access granted!")
+                return true
+            } else {
+                listener.onLog("  ✗ Key rejected")
+            }
+        }.onFailure { e ->
+            listener.onLog("  ✗ Key error: ${e.message}")
+        }
+        return false
+    }
+
 
     /**
      * Execute a full battery scan.
@@ -291,18 +387,87 @@ object BatteryScanner {
                     "Heating: ${data.activeHeating} | Cooling: ${data.activeCooling}")
             }
 
-            // ── Step 9: Read Charger Data (1AA3) ──
+            // ══════════════════════════════════════════════════════════
+            // Authenticated Charger Data Block
+            // Voltage's T0 sequence: auth on 7E4, then read charger PIDs on 24C
+            // ══════════════════════════════════════════════════════════
+
+            // ── Step 9: Security Access (2701/2702) on HPCM2 ──
             step++
-            listener.onProgress(step, TOTAL_SCAN_STEPS, "Reading charger data...")
-            val chargerResult = requestPid(elm, Pids.HPCM2_CHARGER_1, "Charger Data", listener)
-            chargerResult?.let { BatteryDataParser.parseCharger1(it) }?.let {
-                data = data.copy(
-                    chargerAcPower = it.chargerAcPower,
-                    chargerHvPower = it.chargerHvPower
-                )
+            listener.onProgress(step, TOTAL_SCAN_STEPS, "Authenticating for charger data...")
+            listener.onLog("")
+            listener.onLog("═══ SECURITY ACCESS (Charger Data) ═══")
+
+            val authenticated = performSecurityAccess(elm, listener)
+            if (!authenticated) {
+                listener.onLog("  ⚠ Auth failed — charger extended data unavailable")
+                // Fall back: read basic charger data without auth on current header
+                val chargerResult = requestPid(elm, Pids.HPCM2_CHARGER_1, "Charger Data (no auth)", listener)
+                chargerResult?.let { BatteryDataParser.parseCharger1(it) }?.let {
+                    data = data.copy(
+                        chargerAcPower = it.chargerAcPower,
+                        chargerHvPower = it.chargerHvPower
+                    )
+                }
+            } else {
+                listener.onLog("  ✓ Authenticated — reading charger data on BECM (24C)")
+
+                // ── Step 10: Switch to BECM direct (ATSH 24C) ──
+                step++
+                listener.onProgress(step, TOTAL_SCAN_STEPS, "Reading charger data on BECM...")
+                if (!setHeader(elm, "24C", listener)) {
+                    listener.onLog("  ⚠ Cannot switch to BECM — reading on HPCM2 instead")
+                }
+
+                // ── Read 1AA5 (Charger data 2 — requires auth) ──
+                requestPid(elm, Pids.HPCM2_CHARGER_2, "Charger Data 2 (auth)", listener)?.let {
+                    BatteryDataParser.parseCharger2(it)?.let { parsed ->
+                        data = data.copy(
+                            chargerInputVoltage = parsed.chargerInputVoltage,
+                            chargerInputCurrent = parsed.chargerInputCurrent
+                        )
+                    }
+                }
+
+                // ── Read 1AA3 (Charger data 1) ──
+                requestPid(elm, Pids.HPCM2_CHARGER_1, "Charger Data 1", listener)?.let {
+                    BatteryDataParser.parseCharger1(it)?.let { parsed ->
+                        data = data.copy(
+                            chargerAcPower = parsed.chargerAcPower,
+                            chargerHvPower = parsed.chargerHvPower
+                        )
+                    }
+                }
+
+                // ── Read 1ACC (Charger data 4) ──
+                requestPid(elm, Pids.HPCM2_CHARGER_4, "Charger Data 4", listener)?.let {
+                    BatteryDataParser.parseCharger4(it)?.let { parsed ->
+                        data = data.copy(chargerLimitReason = parsed.chargerLimitReason)
+                    }
+                }
+
+                // ── Read 1ACB (Charger data 3) ──
+                requestPid(elm, Pids.HPCM2_CHARGER_3, "Charger Data 3", listener)?.let {
+                    BatteryDataParser.parseCharger3(it)?.let { parsed ->
+                        data = data.copy(
+                            chargerOutputVoltage = parsed.chargerOutputVoltage,
+                            chargerOutputCurrent = parsed.chargerOutputCurrent
+                        )
+                    }
+                }
+
+                // ── Compute charger efficiency ──
+                if (data.chargerAcPower != null && data.chargerHvPower != null &&
+                    data.chargerAcPower!! > 0f) {
+                    val efficiency = (data.chargerHvPower!! / data.chargerAcPower!!) * 100f
+                    data = data.copy(chargerEfficiency = efficiency)
+                }
+
+                // ── Switch back to HPCM2 for remaining reads ──
+                setHeader(elm, "7E4", listener)
             }
 
-            // Charger Temperatures (UDS Service 22 on HPCM2)
+            // Charger Temperatures (UDS Service 22 on HPCM2 — no auth needed)
             requestPid(elm, Pids.HPCM2_CHARGER_TEMP_1, "Charger Temp 1", listener)?.let {
                 BatteryDataParser.parseChargerTemp1(it)?.let { parsed ->
                     data = data.copy(chargerTemp1 = parsed.chargerTemp1)
@@ -317,6 +482,20 @@ object BatteryScanner {
             if (data.chargerAcPower != null || data.chargerHvPower != null) {
                 listener.onLog("  ✓ AC Power: ${data.chargerAcPower?.let { "%.1f".format(it) } ?: "?"} kW | " +
                     "HV Power: ${data.chargerHvPower?.let { "%.1f".format(it) } ?: "?"} kW")
+                if (data.chargerInputVoltage != null) {
+                    listener.onLog("    AC Input: ${data.chargerInputVoltage?.let { "%.1f".format(it) } ?: "?"}V / " +
+                        "${data.chargerInputCurrent?.let { "%.1f".format(it) } ?: "?"}A")
+                }
+                if (data.chargerOutputVoltage != null) {
+                    listener.onLog("    DC Output: ${data.chargerOutputVoltage?.let { "%.1f".format(it) } ?: "?"}V / " +
+                        "${data.chargerOutputCurrent?.let { "%.1f".format(it) } ?: "?"}A")
+                }
+                if (data.chargerEfficiency != null) {
+                    listener.onLog("    Efficiency: ${"%.1f".format(data.chargerEfficiency)}%")
+                }
+                if (data.chargerLimitReason != null) {
+                    listener.onLog("    Limit: ${data.chargerLimitReason}")
+                }
             }
 
             // ── Step 10: Setup flow control + read Cell Voltages (1ADF) ──
