@@ -60,6 +60,9 @@ import com.shvcs.cleaner.ui.LiveMonitorTab
 import com.shvcs.cleaner.ui.HistoryTab
 import com.shvcs.cleaner.ui.HealthReportTab
 import com.shvcs.cleaner.ui.CompareTab
+import com.shvcs.cleaner.ui.ChargeMonitorTab
+import com.shvcs.cleaner.ui.EngineDataTab
+import com.shvcs.cleaner.ui.WeakCellsTab
 import com.shvcs.cleaner.elm.BatteryDataParser
 import com.shvcs.cleaner.data.ScanResult
 
@@ -156,7 +159,7 @@ fun MainScreen(
         )
     }
 
-    val tabLabels = listOf("⚡ Battery", "🔋 Cells", "📊 Live", "📋 History", "🏥 Health", "🔀 Compare", "⚠ DTCs", "⌨ Console", "🔧 SHVCS")
+    val tabLabels = listOf("⚡ Battery", "🔋 Cells", "📊 Live", "📋 History", "🏥 Health", "🔀 Compare", "🔌 Charge", "🏎 Engine", "⚠️ Weak", "⚠ DTCs", "⌨ Console", "🔧 SHVCS")
 
     Column(
         modifier = Modifier
@@ -224,6 +227,27 @@ fun MainScreen(
                     )
                 }
                 6 -> {
+                    // Charge Monitor tab
+                    ChargeMonitorTab(
+                        batteryData = state.batteryData,
+                        isConnected = state.connectionState == ConnectionState.CONNECTED
+                    )
+                }
+                7 -> {
+                    // Engine Data tab
+                    EngineDataTab(
+                        batteryData = state.batteryData,
+                        isConnected = state.connectionState == ConnectionState.CONNECTED
+                    )
+                }
+                8 -> {
+                    // Weak Cells tab
+                    WeakCellsTab(
+                        scans = state.scanHistory,
+                        currentData = state.batteryData
+                    )
+                }
+                9 -> {
                     // DTCs tab
                     Column(
                         modifier = Modifier
@@ -241,7 +265,7 @@ fun MainScreen(
                         Spacer(Modifier.height(4.dp))
                     }
                 }
-                7 -> {
+                10 -> {
                     // Console tab
                     Column(
                         modifier = Modifier
@@ -264,7 +288,7 @@ fun MainScreen(
                         Spacer(Modifier.height(4.dp))
                     }
                 }
-                8 -> {
+                11 -> {
                     // SHVCS Clear tab
                     Column(
                         modifier = Modifier
