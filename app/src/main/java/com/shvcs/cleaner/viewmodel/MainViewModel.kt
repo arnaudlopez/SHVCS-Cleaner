@@ -8,6 +8,7 @@ import com.shvcs.cleaner.elm.ElmWifiManager
 import com.shvcs.cleaner.elm.OBDProtocol
 import com.shvcs.cleaner.elm.UdsResponse
 import com.shvcs.cleaner.elm.DtcParser
+import com.shvcs.cleaner.elm.DtcScanner
 import com.shvcs.cleaner.elm.SeedKeyGenerator
 import com.shvcs.cleaner.elm.BatteryDataParser
 import com.shvcs.cleaner.elm.BatteryScanner
@@ -75,6 +76,10 @@ data class AppState(
     val compareScanB: ScanResult? = null,
     /** Currently selected navigation tab */
     val selectedTab: Int = 0,
+    /** Multi-module DTC scan result */
+    val dtcScanResult: DtcScanner.DtcScanResult? = null,
+    /** Module currently being cleared (null if none) */
+    val clearingModuleId: String? = null,
 )
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -679,6 +684,111 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     pendingDtcClear = false,
                     ecuResponse = "UDS DTC clear failed — could not get seed",
                     ecuResponseCategory = UdsResponse.Category.ERROR
+                )
+            }
+        }
+    }
+
+    /**
+     * Scan DTCs from all ECU modules using UDS Service 19 02 (multi-module).
+     */
+    fun scanDtcsMultiModule() {
+        if (_state.value.connectionState == ConnectionState.DISCONNECTED) return
+        viewModelScope.launch {
+            _state.value = _state.value.copy(
+                isDtcLoading = true,
+                errorMessage = null,
+                dtcScanResult = null
+            )
+            
+            val listener = object : DtcScanner.Listener {
+                override fun onLog(message: String) {
+                    _state.value = _state.value.copy(logs = _state.value.logs + message)
+                }
+                override fun onProgress(step: Int, totalSteps: Int, description: String) {
+                    _state.value = _state.value.copy(
+                        progressStep = description,
+                        currentStep = step,
+                        totalSteps = totalSteps,
+                        progress = step.toFloat() / totalSteps
+                    )
+                }
+                override fun onModuleScanned(module: DtcScanner.ModuleDtcs) {
+                    // Update result incrementally
+                    val current = _state.value.dtcScanResult
+                    val modules = (current?.modules ?: emptyList()) + module
+                    _state.value = _state.value.copy(
+                        dtcScanResult = DtcScanner.DtcScanResult(
+                            modules = modules,
+                            totalDtcCount = modules.sumOf { it.dtcs.size }
+                        )
+                    )
+                }
+                override fun onScanComplete(result: DtcScanner.DtcScanResult) {
+                    _state.value = _state.value.copy(
+                        dtcScanResult = result,
+                        // Also update legacy dtcList with all DTCs flattened
+                        dtcList = result.modules.flatMap { it.dtcs }
+                    )
+                }
+                override fun onError(error: String) {
+                    _state.value = _state.value.copy(
+                        errorMessage = error,
+                        logs = _state.value.logs + "✗ ERROR: $error"
+                    )
+                }
+            }
+            
+            DtcScanner.scanAllModules(elm, listener)
+            _state.value = _state.value.copy(isDtcLoading = false)
+        }
+    }
+
+    /**
+     * Clear DTCs on a specific module using UDS Service 14, then rescan that module.
+     */
+    fun clearModuleDtcs(moduleId: String, moduleName: String) {
+        if (_state.value.connectionState == ConnectionState.DISCONNECTED) return
+        viewModelScope.launch {
+            _state.value = _state.value.copy(
+                clearingModuleId = moduleId,
+                errorMessage = null
+            )
+            
+            val listener = object : DtcScanner.Listener {
+                override fun onLog(message: String) {
+                    _state.value = _state.value.copy(logs = _state.value.logs + message)
+                }
+                override fun onProgress(step: Int, totalSteps: Int, description: String) {}
+                override fun onModuleScanned(module: DtcScanner.ModuleDtcs) {}
+                override fun onScanComplete(result: DtcScanner.DtcScanResult) {}
+                override fun onError(error: String) {
+                    _state.value = _state.value.copy(
+                        errorMessage = error,
+                        logs = _state.value.logs + "✗ ERROR: $error"
+                    )
+                }
+            }
+            
+            val success = DtcScanner.clearModuleDtcs(elm, moduleId, moduleName, listener)
+            
+            if (success) {
+                _state.value = _state.value.copy(
+                    ecuResponse = "✓ DTCs cleared on $moduleName!",
+                    ecuResponseCategory = UdsResponse.Category.SUCCESS,
+                    logs = _state.value.logs + "✓ DTCs cleared on $moduleName — rescanning..."
+                )
+                
+                // Rescan all modules to refresh
+                kotlinx.coroutines.delay(1000)
+                _state.value = _state.value.copy(clearingModuleId = null, isDtcLoading = true)
+                DtcScanner.scanAllModules(elm, listener)
+                _state.value = _state.value.copy(isDtcLoading = false)
+            } else {
+                _state.value = _state.value.copy(
+                    ecuResponse = "Clear failed on $moduleName",
+                    ecuResponseCategory = UdsResponse.Category.ERROR,
+                    clearingModuleId = null
                 )
             }
         }

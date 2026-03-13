@@ -48,6 +48,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.shvcs.cleaner.ui.theme.*
 import com.shvcs.cleaner.elm.UdsResponse
 import com.shvcs.cleaner.elm.DtcParser
+import com.shvcs.cleaner.elm.DtcScanner
 import com.shvcs.cleaner.viewmodel.AppState
 import com.shvcs.cleaner.viewmodel.ConnectionState
 import com.shvcs.cleaner.viewmodel.MainViewModel
@@ -63,6 +64,7 @@ import com.shvcs.cleaner.ui.CompareTab
 import com.shvcs.cleaner.ui.ChargeMonitorTab
 import com.shvcs.cleaner.ui.EngineDataTab
 import com.shvcs.cleaner.ui.WeakCellsTab
+import com.shvcs.cleaner.ui.DtcTab
 import com.shvcs.cleaner.elm.BatteryDataParser
 import com.shvcs.cleaner.data.ScanResult
 
@@ -100,6 +102,8 @@ class MainActivity : ComponentActivity() {
                         onReadDtcs = { viewModel.readDtcs() },
                         onClearDtcsGeneric = { viewModel.clearDtcsGeneric() },
                         onClearDtcsUds = { viewModel.clearDtcsUds() },
+                        onScanDtcsMultiModule = { viewModel.scanDtcsMultiModule() },
+                        onClearModuleDtcs = { id, name -> viewModel.clearModuleDtcs(id, name) },
                         onSendRawCommand = { cmd, hdr -> viewModel.sendRawCommand(cmd, hdr) },
                         onClearConsole = { viewModel.clearConsoleHistory() },
                         onScanBattery = { viewModel.scanBattery() },
@@ -144,7 +148,9 @@ fun MainScreen(
     onDeleteAllScans: () -> Unit,
     onSelectScan: (ScanResult) -> Unit,
     onSelectCompareScanA: (ScanResult) -> Unit,
-    onSelectCompareScanB: (ScanResult) -> Unit
+    onSelectCompareScanB: (ScanResult) -> Unit,
+    onScanDtcsMultiModule: () -> Unit,
+    onClearModuleDtcs: (String, String) -> Unit
 ) {
     // Show key input dialog when awaiting key
     if (state.connectionState == ConnectionState.AWAITING_KEY) {
@@ -258,22 +264,16 @@ fun MainScreen(
                     )
                 }
                 9 -> {
-                    // DTCs tab
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState()),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Spacer(Modifier.height(4.dp))
-                        DtcSection(
-                            state = state,
-                            onReadDtcs = onReadDtcs,
-                            onClearDtcsGeneric = onClearDtcsGeneric,
-                            onClearDtcsUds = onClearDtcsUds
-                        )
-                        Spacer(Modifier.height(4.dp))
-                    }
+                    // DTCs tab — Multi-Module DTC Scan
+                    DtcTab(
+                        dtcScanResult = state.dtcScanResult,
+                        isLoading = state.isDtcLoading,
+                        isConnected = isConnected,
+                        isClearingModule = state.clearingModuleId,
+                        onScanDtcs = onScanDtcsMultiModule,
+                        onClearModule = onClearModuleDtcs,
+                        onConnect = onConnect
+                    )
                 }
                 10 -> {
                     // Console tab
