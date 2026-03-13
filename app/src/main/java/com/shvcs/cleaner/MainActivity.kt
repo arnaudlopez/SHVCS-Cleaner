@@ -91,7 +91,7 @@ class MainActivity : ComponentActivity() {
                         state = state,
                         onConnect = { viewModel.connect() },
                         onDisconnect = { viewModel.disconnect() },
-                        onStartClear = { viewModel.startClearSequence() },
+                        onStartClear = { testOnly -> viewModel.startClearSequence(testOnly) },
                         onClearLogs = { viewModel.clearLogs() },
                         onOpenSettings = { showSettings = true },
                         onSubmitKey = { viewModel.submitKey(it) },
@@ -125,7 +125,7 @@ fun MainScreen(
     state: AppState,
     onConnect: () -> Unit,
     onDisconnect: () -> Unit,
-    onStartClear: () -> Unit,
+    onStartClear: (Boolean) -> Unit,
     onClearLogs: () -> Unit,
     onOpenSettings: () -> Unit,
     onSubmitKey: (String) -> Unit,
@@ -300,50 +300,17 @@ fun MainScreen(
                 }
                 11 -> {
                     // SHVCS Clear tab
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .verticalScroll(rememberScrollState()),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Spacer(Modifier.height(4.dp))
-                        Box(
-                            modifier = Modifier.fillMaxWidth().height(200.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            RacingGauge(
-                                progress = state.progress,
-                                connectionState = state.connectionState,
-                                stepText = state.progressStep
-                            )
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            InfoCard("VEHICLE INFO", Modifier.weight(1f),
-                                listOf("VIN" to state.vin, "BATTERY" to state.voltage))
-                            InfoCard("ECU DATA", Modifier.weight(1f),
-                                listOf(
-                                    "SEED" to state.seed,
-                                    "RESPONSE" to (state.ecuResponse ?: "—")
-                                ),
-                                valueColors = mapOf(
-                                    1 to when (state.ecuResponseCategory) {
-                                        UdsResponse.Category.SUCCESS -> RacingGreen
-                                        UdsResponse.Category.ERROR -> RacingRed
-                                        UdsResponse.Category.WARNING -> RacingAmber
-                                        UdsResponse.Category.NEUTRAL -> RacingWhite
-                                    }
-                                )
-                            )
-                        }
-                        ActionButtons(state, onConnect, onDisconnect, onStartClear)
-                        Spacer(Modifier.height(4.dp))
-                    }
-                    LogPanel(logs = state.logs, onClear = onClearLogs,
-                        modifier = Modifier.heightIn(min = 100.dp, max = 200.dp))
-                    Spacer(Modifier.height(8.dp))
+                    ShvcsSection(
+                        modifier = Modifier.weight(1f).fillMaxWidth(),
+                        state = state,
+                        onConnect = onConnect,
+                        onDisconnect = onDisconnect,
+                        onStartClear = onStartClear,
+                        onClearLogs = onClearLogs,
+                        onSubmitKey = onSubmitKey,
+                        onCancelKey = onCancelKey,
+                        onDeleteKey = onDeleteKey
+                    )
                 }
             }
         }
@@ -380,6 +347,65 @@ fun MainScreen(
             }
         }
     }
+}
+
+// ─── SHVCS Section ───────────────────────────────────────────────────
+
+@Composable
+fun ShvcsSection(
+    modifier: Modifier = Modifier,
+    state: AppState,
+    onConnect: () -> Unit,
+    onDisconnect: () -> Unit,
+    onStartClear: (Boolean) -> Unit,
+    onClearLogs: () -> Unit,
+    onSubmitKey: (String) -> Unit,
+    onCancelKey: () -> Unit,
+    onDeleteKey: (String) -> Unit
+) {
+    Column(
+        modifier = modifier
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Spacer(Modifier.height(4.dp))
+        Box(
+            modifier = Modifier.fillMaxWidth().height(200.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            RacingGauge(
+                progress = state.progress,
+                connectionState = state.connectionState,
+                stepText = state.progressStep
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            InfoCard("VEHICLE INFO", Modifier.weight(1f),
+                listOf("VIN" to state.vin, "BATTERY" to state.voltage))
+            InfoCard("ECU DATA", Modifier.weight(1f),
+                listOf(
+                    "SEED" to state.seed,
+                    "RESPONSE" to (state.ecuResponse ?: "—")
+                ),
+                valueColors = mapOf(
+                    1 to when (state.ecuResponseCategory) {
+                        UdsResponse.Category.SUCCESS -> RacingGreen
+                        UdsResponse.Category.ERROR -> RacingRed
+                        UdsResponse.Category.WARNING -> RacingAmber
+                        UdsResponse.Category.NEUTRAL -> RacingWhite
+                    }
+                )
+            )
+        }
+        ActionButtons(state, onConnect, onDisconnect, onStartClear)
+        Spacer(Modifier.height(4.dp))
+    }
+    LogPanel(logs = state.logs, onClear = onClearLogs,
+        modifier = Modifier.heightIn(min = 100.dp, max = 200.dp))
+    Spacer(Modifier.height(8.dp))
 }
 
 // ─── Key Input Dialog ────────────────────────────────────────────────
@@ -741,7 +767,7 @@ fun InfoCard(title: String, modifier: Modifier = Modifier, items: List<Pair<Stri
 // ─── Action Buttons ──────────────────────────────────────────────────
 
 @Composable
-fun ActionButtons(state: AppState, onConnect: () -> Unit, onDisconnect: () -> Unit, onStartClear: () -> Unit) {
+fun ActionButtons(state: AppState, onConnect: () -> Unit, onDisconnect: () -> Unit, onStartClear: (Boolean) -> Unit) {
     val isConnected = state.connectionState != ConnectionState.DISCONNECTED &&
             state.connectionState != ConnectionState.CONNECTING
     val isBusy = state.connectionState == ConnectionState.RUNNING ||
@@ -765,22 +791,33 @@ fun ActionButtons(state: AppState, onConnect: () -> Unit, onDisconnect: () -> Un
             ) { Text("DISCONNECT", style = MaterialTheme.typography.labelLarge) }
         }
 
-        Button(onStartClear, Modifier.fillMaxWidth().height(56.dp),
-            enabled = isConnected && !isBusy,
-            shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = RacingRed, contentColor = Color.White,
-                disabledContainerColor = RacingRedDark.copy(alpha = 0.3f),
-                disabledContentColor = Color.White.copy(alpha = 0.3f))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                when (state.connectionState) {
-                    ConnectionState.RUNNING, ConnectionState.UNLOCKING -> "CLEARING..."
-                    ConnectionState.AWAITING_KEY -> "ENTER KEY..."
-                    ConnectionState.SUCCESS -> "✓ CLEARED — RUN AGAIN"
-                    else -> "CLEAR SHVCS ERROR"
-                },
-                style = MaterialTheme.typography.labelLarge, fontSize = 18.sp, letterSpacing = 3.sp
-            )
+            Text("1. Clear SHVCS", fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = RacingWhite)
+            Spacer(Modifier.width(16.dp))
+
+            Button(
+                onClick = { onStartClear(true) },
+                colors = ButtonDefaults.buttonColors(containerColor = RacingOrange),
+                modifier = Modifier.weight(1f),
+                enabled = isConnected && !isBusy
+            ) {
+                Text("TEST KEY ONLY", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            }
+
+            Spacer(Modifier.width(8.dp))
+
+            Button(
+                onClick = { onStartClear(false) },
+                colors = ButtonDefaults.buttonColors(containerColor = RacingRed),
+                modifier = Modifier.weight(1f),
+                enabled = isConnected && !isBusy
+            ) {
+                Text("RESET SHVCS", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            }
         }
 
         AnimatedVisibility(visible = state.errorMessage != null && state.connectionState != ConnectionState.AWAITING_KEY) {

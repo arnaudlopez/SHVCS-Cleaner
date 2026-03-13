@@ -374,6 +374,97 @@ object OBDProtocol {
      *   4. Seed received → ECU ready, submit key immediately
      *   5. On unlock success → proceed to clear
      */
+    suspend fun testKeyValidity(elm: ElmWifiManager, key: String, listener: Listener): KeySubmitResult {
+        val baseStep = CAN_CONFIG_COMMANDS.size + 1
+
+        try {
+            // ── Pre-flight: Poll ECU readiness ──
+            listener.onLog("")
+            listener.onLog("═══ CHECKING ECU READINESS ═══")
+            listener.onProgress(baseStep + 1, CLEAR_TOTAL_STEPS, "Checking ECU availability…")
+
+            val readyResult = pollEcuReadiness(elm, listener)
+            when (readyResult) {
+                EcuReadiness.READY, EcuReadiness.TIME_DELAY_EXPIRED -> {
+                    listener.onLog("  ✓ ECU is ready for security access")
+                }
+                EcuReadiness.LOCKED -> {
+                    listener.onClearFailed("ECU locked — too many attempts. Power cycle the vehicle and wait.")
+                    return KeySubmitResult.MAX_ATTEMPTS
+                }
+                EcuReadiness.TIMEOUT -> {
+                    listener.onClearFailed("ECU timeout waiting for readiness.")
+                    return KeySubmitResult.TIME_DELAY
+                }
+                EcuReadiness.ERROR -> return KeySubmitResult.REJECTED
+            }
+
+            // ── Phase 4b: Submit Key (ECU confirmed ready) ──
+            listener.onLog("")
+            listener.onLog("═══ TESTING SECURITY KEY ═══")
+            val keyCommand = "$KEY_COMMAND_PREFIX$key"
+            listener.onProgress(baseStep + 1, CLEAR_TOTAL_STEPS, "Testing Key")
+            listener.onLog("► $keyCommand (Submit Key: $key)")
+
+            var result: KeySubmitResult = KeySubmitResult.REJECTED
+            val keyResult = elm.sendCommand(keyCommand, timeoutMs = 5000L)
+            keyResult.onSuccess { response ->
+                listener.onLog("  ◄ $response")
+                val uds = UdsResponse.parse(response)
+                listener.onEcuResponse(uds)
+                logUdsResponse(uds, listener)
+
+                val cleanResponse = response.replace(" ", "").lowercase()
+
+                when {
+                    cleanResponse.contains(UNLOCK_SUCCESS_MARKER.lowercase()) -> {
+                        listener.onLog("  ✓ Key accepted by controller!")
+                        result = KeySubmitResult.SUCCESS
+                    }
+                    UdsResponse.isInvalidKey(uds) -> {
+                        listener.onClearFailed("Invalid key.")
+                        result = KeySubmitResult.INVALID_KEY
+                    }
+                    UdsResponse.isMaxAttempts(uds) -> {
+                        listener.onClearFailed("Max attempts exceeded.")
+                        result = KeySubmitResult.MAX_ATTEMPTS
+                    }
+                    UdsResponse.isTimeDelay(uds) -> {
+                        listener.onClearFailed("ECU entered time delay.")
+                        result = KeySubmitResult.TIME_DELAY
+                    }
+                    else -> {
+                        listener.onClearFailed("Key rejected or unknown response.")
+                        result = KeySubmitResult.REJECTED
+                    }
+                }
+            }.onFailure { e ->
+                listener.onLog("  ✗ Error: ${e.message}")
+                listener.onClearFailed("Key submission failed.")
+                result = KeySubmitResult.REJECTED
+            }
+
+            return result
+        } catch (e: Exception) {
+            listener.onError("Sequence error: ${e.message}")
+            return KeySubmitResult.REJECTED
+        }
+    }
+
+    /**
+     * Phase B: Check ECU readiness, submit key, unlock, and clear.
+     *
+     * Instead of blindly sending the key, we first probe the ECU with a seed
+     * request to check if it's accepting security access. This avoids wasting
+     * key attempts on a locked/cooling-down ECU.
+     *
+     * Flow:
+     *   1. Send seed request → check ECU status
+     *   2. NRC 0x37 (time delay) → auto-wait 10s, re-poll (up to 6× = 60s)
+     *   3. NRC 0x36 (max attempts) → ECU locked, need power cycle
+     *   4. Seed received → ECU ready, submit key immediately
+     *   5. On unlock success → proceed to clear
+     */
     suspend fun executeUnlockAndClear(elm: ElmWifiManager, key: String, listener: Listener): KeySubmitResult {
         val baseStep = CAN_CONFIG_COMMANDS.size + 1
 
