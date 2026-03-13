@@ -167,7 +167,7 @@ fun MainScreen(
             .background(RacingBlack)
             .systemBarsPadding()
     ) {
-        TopBar(state, onOpenSettings)
+        TopBar(state, onOpenSettings, onConnect, onDisconnect)
 
         // ── Tab Content ──
         Column(
@@ -175,6 +175,8 @@ fun MainScreen(
                 .weight(1f)
                 .padding(horizontal = 16.dp)
         ) {
+            val isConnected = state.connectionState == ConnectionState.CONNECTED ||
+                    state.connectionState == ConnectionState.SUCCESS
             when (state.selectedTab) {
                 0 -> {
                     // Dashboard tab
@@ -182,7 +184,9 @@ fun MainScreen(
                         batteryData = state.batteryData,
                         voltage12v = state.voltage,
                         isLoading = state.isBatteryScanLoading,
-                        onScanBattery = onScanBattery
+                        isConnected = isConnected,
+                        onScanBattery = onScanBattery,
+                        onConnect = onConnect
                     )
                 }
                 1 -> {
@@ -190,7 +194,9 @@ fun MainScreen(
                     CellVoltagesTab(
                         batteryData = state.batteryData,
                         isLoading = state.isBatteryScanLoading,
-                        onScanBattery = onScanBattery
+                        isConnected = isConnected,
+                        onScanBattery = onScanBattery,
+                        onConnect = onConnect
                     )
                 }
                 2 -> {
@@ -199,8 +205,10 @@ fun MainScreen(
                         isMonitoring = state.isMonitoring,
                         liveHistory = state.liveHistory,
                         latestData = state.batteryData,
+                        isConnected = isConnected,
                         onStart = onStartLive,
-                        onStop = onStopLive
+                        onStop = onStopLive,
+                        onConnect = onConnect
                     )
                 }
                 3 -> {
@@ -230,14 +238,16 @@ fun MainScreen(
                     // Charge Monitor tab
                     ChargeMonitorTab(
                         batteryData = state.batteryData,
-                        isConnected = state.connectionState == ConnectionState.CONNECTED
+                        isConnected = isConnected,
+                        onConnect = onConnect
                     )
                 }
                 7 -> {
                     // Engine Data tab
                     EngineDataTab(
                         batteryData = state.batteryData,
-                        isConnected = state.connectionState == ConnectionState.CONNECTED
+                        isConnected = isConnected,
+                        onConnect = onConnect
                     )
                 }
                 8 -> {
@@ -529,27 +539,96 @@ fun KeyInputDialog(
 // ─── Top Bar ─────────────────────────────────────────────────────────
 
 @Composable
-fun TopBar(state: AppState, onOpenSettings: () -> Unit) {
-    Row(
+fun TopBar(
+    state: AppState,
+    onOpenSettings: () -> Unit,
+    onConnect: () -> Unit,
+    onDisconnect: () -> Unit
+) {
+    Column(
         modifier = Modifier.fillMaxWidth()
             .background(Brush.verticalGradient(listOf(RacingDarkGray, RacingBlack)))
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
     ) {
-        val dotColor by animateColorAsState(
-            when (state.connectionState) {
-                ConnectionState.CONNECTED, ConnectionState.SUCCESS -> RacingGreen
-                ConnectionState.CONNECTING, ConnectionState.RUNNING, ConnectionState.UNLOCKING -> RacingOrange
-                ConnectionState.AWAITING_KEY -> RacingAmber
-                ConnectionState.ERROR -> RacingRed
-                ConnectionState.DISCONNECTED -> RacingDimGray
-            }, label = "dot"
-        )
-        Box(Modifier.size(10.dp).clip(CircleShape).background(dotColor))
-        Spacer(Modifier.width(10.dp))
-        Text("SHVCS CLEANER", style = MaterialTheme.typography.headlineMedium, color = RacingWhite)
-        Spacer(Modifier.weight(1f))
-        TextButton(onClick = onOpenSettings) { Text("⚙", fontSize = 22.sp) }
+        Row(
+            modifier = Modifier.fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val dotColor by animateColorAsState(
+                when (state.connectionState) {
+                    ConnectionState.CONNECTED, ConnectionState.SUCCESS -> RacingGreen
+                    ConnectionState.CONNECTING, ConnectionState.RUNNING, ConnectionState.UNLOCKING -> RacingOrange
+                    ConnectionState.AWAITING_KEY -> RacingAmber
+                    ConnectionState.ERROR -> RacingRed
+                    ConnectionState.DISCONNECTED -> RacingDimGray
+                }, label = "dot"
+            )
+            Box(Modifier.size(10.dp).clip(CircleShape).background(dotColor))
+            Spacer(Modifier.width(8.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text("SHVCS CLEANER", fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                    color = RacingWhite, letterSpacing = 1.sp)
+                Text(
+                    when (state.connectionState) {
+                        ConnectionState.DISCONNECTED -> "Non connecté"
+                        ConnectionState.CONNECTING -> "Connexion en cours…"
+                        ConnectionState.CONNECTED -> "Connecté — ${state.elmIp}"
+                        ConnectionState.RUNNING -> state.progressStep
+                        ConnectionState.AWAITING_KEY -> "Clé requise"
+                        ConnectionState.UNLOCKING -> "Déverrouillage ECU…"
+                        ConnectionState.SUCCESS -> "Opération réussie ✓"
+                        ConnectionState.ERROR -> "Erreur — ${state.errorMessage}"
+                    },
+                    fontSize = 10.sp,
+                    color = dotColor,
+                    maxLines = 1
+                )
+            }
+
+            // Connect/Disconnect button — always visible
+            val isConnecting = state.connectionState == ConnectionState.CONNECTING ||
+                    state.connectionState == ConnectionState.UNLOCKING ||
+                    state.connectionState == ConnectionState.RUNNING
+            val isConnected = state.connectionState == ConnectionState.CONNECTED ||
+                    state.connectionState == ConnectionState.SUCCESS
+
+            Button(
+                onClick = { if (isConnected) onDisconnect() else onConnect() },
+                enabled = !isConnecting,
+                modifier = Modifier.height(32.dp),
+                shape = RoundedCornerShape(6.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isConnected) RacingRed.copy(alpha = 0.8f) else RacingGreen,
+                    contentColor = Color.White,
+                    disabledContainerColor = RacingDimGray.copy(alpha = 0.3f)
+                )
+            ) {
+                Text(
+                    when {
+                        isConnecting -> "…"
+                        isConnected -> "Déconnecter"
+                        else -> "Connecter"
+                    },
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Spacer(Modifier.width(4.dp))
+            TextButton(onClick = onOpenSettings) { Text("⚙", fontSize = 18.sp) }
+        }
+
+        // Progress bar when connecting or running
+        if (state.connectionState == ConnectionState.CONNECTING ||
+            state.connectionState == ConnectionState.RUNNING ||
+            state.connectionState == ConnectionState.UNLOCKING) {
+            LinearProgressIndicator(
+                progress = { if (state.progress > 0f) state.progress else 0f },
+                modifier = Modifier.fillMaxWidth().height(2.dp),
+                color = RacingOrange,
+                trackColor = RacingDarkGray,
+            )
+        }
     }
 }
 

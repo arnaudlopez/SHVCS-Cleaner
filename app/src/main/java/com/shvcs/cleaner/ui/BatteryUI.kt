@@ -34,7 +34,9 @@ fun DashboardTab(
     batteryData: BatteryDataParser.BatteryData?,
     voltage12v: String,
     isLoading: Boolean,
-    onScanBattery: () -> Unit
+    isConnected: Boolean,
+    onScanBattery: () -> Unit,
+    onConnect: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -43,6 +45,11 @@ fun DashboardTab(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Spacer(Modifier.height(4.dp))
+
+        // ── Connection Required Banner ──
+        if (!isConnected) {
+            ConnectionRequiredOverlay(onConnect = onConnect)
+        }
 
         // ── SOC Gauge ──
         if (batteryData != null && batteryData.socDisplayed != null) {
@@ -121,7 +128,7 @@ fun DashboardTab(
         // ── Scan Button ──
         Button(
             onClick = onScanBattery,
-            enabled = !isLoading,
+            enabled = !isLoading && isConnected,
             modifier = Modifier.fillMaxWidth().height(48.dp),
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(
@@ -155,7 +162,9 @@ fun DashboardTab(
 fun CellVoltagesTab(
     batteryData: BatteryDataParser.BatteryData?,
     isLoading: Boolean,
-    onScanBattery: () -> Unit
+    isConnected: Boolean,
+    onScanBattery: () -> Unit,
+    onConnect: () -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize()
@@ -259,7 +268,7 @@ fun CellVoltagesTab(
         // ── Rescan Button ──
         Button(
             onClick = onScanBattery,
-            enabled = !isLoading,
+            enabled = !isLoading && isConnected,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp, vertical = 8.dp)
@@ -377,6 +386,64 @@ fun BatteryInfoCard(
                     color = RacingWhite, fontWeight = FontWeight.Bold)
             }
             Spacer(Modifier.height(4.dp))
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Connection Required Overlay — reusable prompt
+// ═══════════════════════════════════════════════════════════════════
+
+@Composable
+fun ConnectionRequiredOverlay(
+    onConnect: () -> Unit,
+    message: String = "Connectez-vous au véhicule pour accéder à cette fonction"
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        RacingBlue.copy(alpha = 0.08f),
+                        RacingCyan.copy(alpha = 0.05f)
+                    )
+                )
+            )
+            .border(1.dp, RacingBlue.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+            .padding(24.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("🔌", fontSize = 32.sp)
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "Véhicule non connecté",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = RacingWhite
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                message,
+                fontSize = 12.sp,
+                color = RacingDimGray,
+                textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.height(16.dp))
+            Button(
+                onClick = onConnect,
+                modifier = Modifier.height(44.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = RacingGreen,
+                    contentColor = Color.White
+                )
+            ) {
+                Text("⚡ CONNECTER AU VÉHICULE", fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp, fontSize = 13.sp)
+            }
         }
     }
 }

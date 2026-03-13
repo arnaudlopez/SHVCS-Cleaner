@@ -28,7 +28,8 @@ import com.shvcs.cleaner.ui.theme.*
 @Composable
 fun ChargeMonitorTab(
     batteryData: BatteryDataParser.BatteryData?,
-    isConnected: Boolean
+    isConnected: Boolean,
+    onConnect: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -46,17 +47,10 @@ fun ChargeMonitorTab(
         )
 
         if (!isConnected || batteryData == null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .background(RacingCardBg, RoundedCornerShape(8.dp))
-                    .border(1.dp, RacingBorder, RoundedCornerShape(8.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Connect to vehicle to view charging data",
-                    color = RacingDimGray)
-            }
+            ConnectionRequiredOverlay(
+                onConnect = onConnect,
+                message = "Connectez-vous au véhicule pour le monitoring de charge"
+            )
         } else {
             // Charging Status Banner
             val isCharging = (batteryData.chargerAcPower ?: 0f) > 0.1f ||
@@ -196,7 +190,8 @@ fun ChargeGaugeCard(
 @Composable
 fun EngineDataTab(
     batteryData: BatteryDataParser.BatteryData?,
-    isConnected: Boolean
+    isConnected: Boolean,
+    onConnect: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -214,17 +209,10 @@ fun EngineDataTab(
         )
 
         if (!isConnected || batteryData == null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .background(RacingCardBg, RoundedCornerShape(8.dp))
-                    .border(1.dp, RacingBorder, RoundedCornerShape(8.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Connect to vehicle for engine data (Volt Gen1 only)",
-                    color = RacingDimGray, textAlign = TextAlign.Center)
-            }
+            ConnectionRequiredOverlay(
+                onConnect = onConnect,
+                message = "Connectez-vous au véhicule pour les données moteur"
+            )
         } else {
             // Temperature gauges
             Row(

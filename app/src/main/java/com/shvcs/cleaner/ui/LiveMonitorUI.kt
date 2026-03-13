@@ -57,8 +57,10 @@ fun LiveMonitorTab(
     isMonitoring: Boolean,
     liveHistory: List<LiveMonitor.LiveDataPoint>,
     latestData: BatteryDataParser.BatteryData?,
+    isConnected: Boolean,
     onStart: () -> Unit,
-    onStop: () -> Unit
+    onStop: () -> Unit,
+    onConnect: () -> Unit
 ) {
     var selectedParams by remember {
         mutableStateOf(setOf(MonitorParam.SOC, MonitorParam.HV_VOLTAGE, MonitorParam.HV_POWER))
@@ -92,16 +94,21 @@ fun LiveMonitorTab(
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        if (!isMonitoring) "Start monitoring to see live data"
-                        else "Waiting for data…",
-                        color = RacingDimGray,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    if (!isMonitoring) {
-                        Spacer(Modifier.height(8.dp))
-                        Text("📊 Real-time charts will appear here",
-                            color = RacingGray, style = MaterialTheme.typography.bodySmall)
+                    if (!isConnected) {
+                        ConnectionRequiredOverlay(onConnect = onConnect,
+                            message = "Connectez-vous au véhicule pour le monitoring en direct")
+                    } else {
+                        Text(
+                            if (!isMonitoring) "Start monitoring to see live data"
+                            else "Waiting for data…",
+                            color = RacingDimGray,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                        if (!isMonitoring) {
+                            Spacer(Modifier.height(8.dp))
+                            Text("📊 Real-time charts will appear here",
+                                color = RacingGray, style = MaterialTheme.typography.bodySmall)
+                        }
                     }
                 }
             }
@@ -122,6 +129,7 @@ fun LiveMonitorTab(
         // ── Start/Stop Button ──
         Button(
             onClick = { if (isMonitoring) onStop() else onStart() },
+            enabled = isConnected || isMonitoring,
             modifier = Modifier.fillMaxWidth().height(48.dp),
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(
