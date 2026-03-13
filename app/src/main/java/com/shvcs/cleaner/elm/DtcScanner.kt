@@ -299,32 +299,33 @@ object DtcScanner {
                             nrc == "33" -> {
                                 listener.onLog("  ✗ Security access required but authentication failed")
                                 listener.onError("Security access denied on $moduleName")
-                                return false
                             }
                             nrc == "22" -> {
                                 listener.onLog("  ✗ Conditions not correct (vehicle may need to be in specific state)")
                                 listener.onError("Conditions not met for $moduleName")
-                                return false
                             }
-                            nrc == "11" || nrc == "31" -> {
-                                // Service not supported or request out of range → try Mode 04
-                                listener.onLog("  ⚠ Service 14 not supported (NRC: $nrc), trying OBD-II Mode 04...")
-                                return tryGenericClear(elm, listener)
+                            nrc == "11" -> {
+                                listener.onLog("  ✗ Service 14 not supported on this module (NRC: 11)")
+                                listener.onError("Service not supported on $moduleName — use Generic Clear")
+                            }
+                            nrc == "31" -> {
+                                listener.onLog("  ✗ Request out of range (NRC: 31)")
+                                listener.onError("Clear not supported on $moduleName")
                             }
                             else -> {
-                                listener.onLog("  ✗ Clear rejected by ECU (NRC: $nrc), trying Mode 04...")
-                                return tryGenericClear(elm, listener)
+                                listener.onLog("  ✗ Clear rejected by ECU (NRC: $nrc)")
+                                listener.onError("Clear rejected on $moduleName")
                             }
                         }
+                        return false
                     }
                     clean.contains("nodata") -> {
                         listener.onLog("  ⚠ No response — module may not support clear")
                         return false
                     }
                     else -> {
-                        // Try Mode 04 as fallback for non-UDS modules
-                        listener.onLog("  ⚠ Unexpected response, trying OBD-II Mode 04...")
-                        return tryGenericClear(elm, listener)
+                        listener.onLog("  ⚠ Unexpected response: ${response.trim()}")
+                        return false
                     }
                 }
             }.onFailure { e ->
