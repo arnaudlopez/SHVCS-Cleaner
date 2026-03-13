@@ -1,1235 +1,0 @@
-B2745;Traction Control Switch Circuit
-C0010 C0019 C001C or C001D;Inlet Control/Outlet Control
-C0051;Steering Wheel Angle Sensor
-C006B;Stability System Active Too Long
-C0186 C018B C0196 C019B C027E C0287;Lateral Acceleration/Longitudinal Acceleration/Yaw Rate Signals
-"C0500 C0504 C0506-C0510 or C0512-
-C0516";Wheel Speed Sensors
-C052B C052D C052F C055B or C05AE;ABS Pump Motor
-"C0552 C10C0 C10C4 or C1251 (Without
-UGN)";Yaw Rate
-C0555 C0558;Wheel Speed Sensor Incorrect Component Installed
-C059B or C0560;Front Brake Pressure Sensor Missing Calibration
-C0571 C0572 or C0574;Brake Master Cylinder Pressure Sensor 1 Circuit
-C0575 C0576 or C0578;Left Rear Brake Pressure Sensor Circuit
-C05A3 C05A4 or C10EE;"Wheel Speed Sensor Supply Circuit/Wheel Speed
-Sensor Frequency"
-C05AD;Brake Blending System Performance
-C05B0 or C05B1;"ABS Front Hydraulic Circuit Leak Detected/ABS
-Rear Hydraulic Circuit Leak Detected"
-C05B2;"Steering Wheel Angle Sensor Signal - Yaw Rate
-Sensor Signal Not Plausible"
-C106A or C106B;"Pump Motor Relay Circuit Low/Pump Motor Relay
-Circuit High"
-C106D C106F or C1070;Valve Relay Circuit
-C10AC;Brake System Calculated Component Overheat
-C10EA;"Powertrain Control Module Indicated Requested
-Torque"
-C10EB;Engine Control Module Indicated Traction Control
-C112B;Active Brake System Performance
-C112F;Isolation Valve Performance
-C1200;"Powertrain Sensed Brake Pedal Information Message
-Counter Incorrect"
-C1203;"Invalid Data Received From Integrated Chassis
-Control Module"
-C124C C124E or C1269;Wheel Speed Sensor Incorrect Mounting
-C1259;"Powertrain Automatic Braking Request Message
-Counter Incorrect"
-C1268;"Accelerator Pedal Override Active Message Counter
-Incorrect"
-C1284 or C1285;"Brake Assist Information 1 Message Counter
-Incorrect/Brake Assist Information 2 Message
-Counter Incorrect"
-C1286;Commanded Axle Torque Message Counter Incorrect
-C1287;"Regenerative Braking Axle Torque Achieved
-Message Counter Incorrect"
-C1288;"Autonomous Braking Accelerator Actual Position
-Status Message Counter Incorrect"
-C1289;"Charging System Park Brake Autonomous Apply
-Request Message Counter Incorrect"
-C1445;"System Disabled Information Stored Temperature
-High"
-C144B;Electronic Control Unit Software
-C158F or C1590 C1592;"Traction Control Prime Solenoid Valve
-Circuits/Traction Control Isolation Solenoid Valve
-Circuits"
-C1594;"Adaptive Cruise Control Braking Request -
-Accelerator Pedal Position Not Plausible"
-P0560 P0562 or P0563;System Voltage
-P05FF;"Brake Pressure Sensor and Brake Pedal Position
-Sensor Correlation"
-P0601 P0604 P0606 P060B or P062F;Control Module (Electronic Brake Control Module)
-P0856;Traction Control Torque Request Circuit
-P15F8;"Automatic Braking Engine Torque Request Signal
-Message Counter Incorrect"
-P15FD;Wheel Speed Sensor Message Sequence Incorrect
-P1B12;"Driver Intended Braking Torque Signal Message
-Counter Incorrect"
-P215A;Vehicle Speed-Wheel Speed Correlation
-P2299;"Brake Pedal Position/Accelerator Pedal Position
-Incompatible"
-P0658 or P0659;Actuator High Control Circuit Group 1 Voltage
-P0711 P0713;Transmission Fluid Temperature Sensor
-P0721;Output Speed Sensor Performance
-P077B P077D;Output Speed Sensor Circuit
-P079A;Transmission Clutch 1 Slip Detected
-P079B;Transmission Clutch 2 Slip Detected
-P079C;Transmission Clutch 3 Slip Detected
-P07A3;Transmission Clutch 1 Stuck On
-P07A5;Transmission Clutch 2 Stuck On
-P07A7;Transmission Clutch 3 Stuck On
-P0960 P0962 or P0963;"Transmission Control Solenoid Valve 1 Control
-Circuit"
-P0964 P0966 P0968 P0970 P0971 P2718;"Transmission Control Solenoid Valve 2 Control
-Circuit/Transmission Control Solenoid Valve 3
-Control Circuit/Transmission Control Solenoid Valve
-4 Control Circuit/Transmission Control Solenoid
-Valve 5 Control Circuit"
-P2720 P2721 P2727 P2729 or P2730;"Transmission Control Solenoid Valve 2 Control
-Circuit/Transmission Control Solenoid Valve 3
-Control Circuit/Transmission Control Solenoid Valve
-4 Control Circuit/Transmission Control Solenoid
-Valve 5 Control Circuit"
-P152A or P152D;"Regenerative Braking Control Switch 1
-Circuit/Regenerative Braking Control Switch 1 and 2
-Circuit"
-P152C;"Regenerative Braking Control Switch Signal
-Message Counter Incorrect"
-P16F7;"Control Module Pressure Control Solenoid
-Command Incorrect"
-P179C;Transmission Clutch 1 Minor Slip Detected
-P179D;Transmission Clutch 2 Minor Slip Detected
-P1824 P182A P182F P1838-P1841;Internal Mode Switch
-P18B5-P18BA P18BC P18BF P18C0 P18C2;Internal Mode Switch
-or P18C3;Internal Mode Switch
-P215B;Vehicle Speed - Output Shaft Speed Not Plausible
-P215C;Output Shaft Speed - Wheel Speed Not Plausible
-P2670 or P2671;Actuator High Control Circuit Group 2 Voltage
-P27A7;"Transmission Control Solenoid Valve 1 Calibration
-Incorrect"
-DTC B1325 B1330 B1517 CO800 C0899;"Device Power Circuit/Battery Voltage/System
-Voltage/Battery Energy Control Module System"
-C0900 C12E1 C12E2 P0561 P0563 P1A0C;"Device Power Circuit/Battery Voltage/System
-Voltage/Battery Energy Control Module System"
-P1A0D or P1EFC;"Device Power Circuit/Battery Voltage/System
-Voltage/Battery Energy Control Module System"
-DTC B1516;Battery Current Senso
-DTC B151A;Low Battery Capacity Detected
-DTC B1527;Parasitic Load
-DTC P0A8D;14V Power Module System Voltage Low Voltage
-DTC P1F5D or P1F5E;14 Volt Power Module L-Terminal Circuit
-DTC P1F59 P1F5A or P1F5B;14 Volt Power Module Status Terminal Circuit
-DTC U3001 U3003 U3006 U3009 U3013;Battery Voltage/Control Module
-U3014 U3018 U3019 or U350O-U350B;Battery Voltage/Control Module
-DTC B3006;Hood Ajar Circuit
-DTC P257D P257F;Engine Hood Switch Circuit
-DTC P059F or P151E;Active Grille Air Shutte
-DTC B0997;Auxiliary Electronic Control Unit Performance
-DTC B1024;"Circuit Board Temperature Sensor Above Maximum
-Threshold (Audio Amplifier)"
-DTC B1024;"Circuit Board Temperature Sensor Below Minimum
-Threshold/Circuit Board Temperature Sensor Above
-Maximum Threshold (Human Machine Interface
-Control Module)"
-DTC B1025 B1135;Audio Output Circuits
-DTC B124B;USB 1 Circuit
-DTC B124F;Universal Serial Bus (USB) Programming
-DTC B125A;Antenna Signal Circuit
-DTC B125C;Satellite Antenna Circuit
-DTC B1271;Theft Protection Active
-DTC B127E;Front Video Display Output Signal
-DTC B12A8;Optical Media Drive Theft Locked
-DTC B1446 or B1447;Backup Power Source
-DTC B2455;Cellular Phone Microphone Circuit
-DTC B2462;Global Positioning System
-DTC B2470;Cellular Phone Antenna Circuit Malfunction
-DTC B2476 or B2482;Cellular Phone Select Service Switch
-DTC P0571;Cruise Control Brake Switch Circuit
-DTC P0572 or P0573;Brake Switch Circuit 1 Low/High Voltage
-DTC P0575;"Cruise Control Switch Signal Message Counter
-Incorrect"
-DTC P0703;Brake Switch Signal Message Counter Incorrect
-DTC P158A;Cruise Control Calibration Incorrect
-DTC B1000;Electronic Control Unit
-DTC B1001;Option Configuration
-DTC B1016;"Vehicle Identification Number Information Not
-Programmed"
-DTC B101D;Electronic Control Unit Hardware
-DTC B101E;Electronic Control Unit Software
-DTC C056D;Electronic Control Unit Hardware
-DTC C056E;Electronic Control Unit Software
-DTC P0601 P0607 P060A-P060C P062F;Control Module
-P16E9-P16F0 or P262B;Control Module
-DTC P06E4;"Control Module Wake-Up Circuit Performance
-(Hybrid/EV Powertrain Control Module 2)"
-DTC P0A1F P1A01 P1A05 or P1A06;Battery Energy Control Module
-DTC P16B7;"Electric A/C Compressor Control Module Wake-Up
-Circuit Performance"
-DTC P16B8 P16BA;Electric A/C Compressor Control Module
-DTC P1E8E P1E91 P1E94-P1E97 P1E9A-;Hybrid/EV Battery Interface Control Module
-P1E9D P1EA0-P1EA3 P1F06-P1F09 P1FAC-;Hybrid/EV Battery Interface Control Module
-P1FC2 P1FCF-P1FD4 P1FF3 P3031-P3034;Hybrid/EV Battery Interface Control Module
-P3037 P303C-P303F or P3042;Hybrid/EV Battery Interface Control Module
-DTC P1EB1;"Hybrid/EV Battery Interface Control Module
-Software Incompatible"
-"DTC P1EB2 P1EB5 P1FA6-P1FAB P3030 or
-P303B";Hybrid/EV Battery Interface Control Module
-DTC P1EB9;"High Voltage Energy Management Communication
-Bus Enable Circuit"
-DTC P1EB9;"High Voltage Energy Management Communication
-Bus Enable Circuit"
-DTC U0020;Low Speed CAN Bus
-DTC U0028;MOST Bus
-DTC U0029;MOST Bus Performance
-DTC U0073 or U2100;"Control Module Communication Bus A Off/CAN
-Bus Communication"
-DTC U0074;"Control Module Communication Powertrain
-Expansion CAN Bus Off"
-DTC U0075;"Control Module Communication Object Detection
-CAN Bus Off"
-DTC U0077;"Control Module Communication Chassis Expansion
-CAN Bus Off"
-DTC U0078;"Control Module Communication Low Speed CAN
-Bus Off"
-DTC U007A;"Control Module Communication High Voltage
-Energy Management CAN Bus Off"
-DTC U179A;"Lost Communication with Hybrid Powertrain
-Control Module 2"
-DTC U179D;"Lost Communication with Brake System Control
-Module 2 on Chassis Expansion Bus"
-DTC U1803;"Lost Communication with Hybrid Powertrain
-Control Module 2"
-DTC U1806;"Battery Energy Control Module High Voltage
-Energy Management CAN Bus Off"
-DTC U180B;"Battery Energy Control Module High Speed CAN
-Bus Off"
-DTC U1814;Powertrain Wake-Up Communication Circuit
-DTC U1817;Lost Communication with Hybrid Powertrain Control Module on Powertrain Expansion CAN Bus
-DTC U1818;"Lost Communication with Engine Control Module
-on Powertrain Expansion Communication Bus"
-DTC U182D;"Lost Communication with Hybrid Powertrain
-Control Module 2 on Powertrain Expansion
-Communication Bus"
-DTC U182E or U182F;"Drive Motor Control Module Lost Communication
-with Hybrid PCM 2 on Powertrain Expansion
-Communication Bus"
-DTC U1833;"Lost Communication with Electronic Brake Control
-Module on Chassis Expansion CAN Bus"
-DTC U183E;"Lost Communication with Telematics
-Communication Interface Control Module on Low
-Speed CAN Bus"
-DTC U1845 or U1846;"Drive Motor Control Module Lost Communication
-with Hybrid Powertrain Control Module"
-DTC U184A;"Lost Communication with Body Control Module on
-Low Speed CAN Bus"
-DTC U184B;"Lost Communication with Remote Heater and Air
-Conditioning Control Module on Low Speed CAN
-Bus"
-DTC U184C;"Lost Communication with Instrument Cluster on
-Low Speed CAN Bus"
-DTC U184D;"Lost Communication with Radio on Low Speed
-CAN Bus"
-DTC U184E;"Lost Communication with Inflatable Restraint
-Sensing and Diagnostic Module on Low Speed CAN
-Bus"
-DTC U185A;"Lost Communication with Battery Energy Control
-Module on High Voltage Energy Management CAN
-Bus"
-DTC U185B;"Battery Energy Control Module Lost
-Communication with Hybrid/EV Powertrain Control
-Module 2 on High Voltage Energy Management
-CAN Bus"
-DTC U1860;"Electric A/C Compressor Control Module Lost
-Communication with Hybrid Powertrain Control
-Module 2"
-DTC U1876;"Drive Motor Control Module 1 Lost Communication
-with Engine Control Module"
-DTC U1879;"Drive Motor Control Module 2 Lost Communication
-with Engine Control Module"
-DTC U1885;"Battery Energy Control Module Lost
-Communication with Hybrid/EV Powertrain Control
-Module"
-DTC U18A2;"Lost Communication with Fuel Pump Driver Control
-Module"
-DTC U18B5;"Lost Communication With Hybrid Powertrain
-Control Module on Chassis Expansion CAN Bus"
-DTC U18B9 U18BF;"Primary/Secondary High Speed CAN Bus Subnet
-Configuration List"
-DTC U2098;MOST Communication Enable Circuit
-DTC U2099;High Speed Communication Enable Circuit
-DTC U2160 U2231;Control Module U Code List
-DTC U2401;Battery Energy Control Module Dedicated Bus 1 Off
-DTC U2602;"Battery Energy Control Module Lost
-Communication with Hybrid/EV Powertrain Control
-Module 2"
-DTC U2603 U2606 or U2617-U2624;"Battery Energy Control Module Lost
-Communication with Hybrid/EV Battery Interface
-Control Module"
-DTC U2616;"Fuel Pump Driver Control Module Lost
-Communication with ECM"
-DTC U3000;Control Module
-DTC U3012;Control Module Improper Wake-up Perfomance
-DTC P0010 P0013 or P2088 P2091;Camshaft Position Actuator Solenoid Valve Control
-DTC P0011 or P0014;"Intake/Exhaust Camshaft Position System
-Performance"
-DTC P0016 or P0017;Crankshaft Position
-DTC P0030 P0032 P0036-P0038 P0053 P0054;HO2S Heater
-P0135 or P0141;HO2S Heater
-DTC P0089 P00C6 P228C or P228D;Fuel Pressure Regulator
-DTC P0090 P0092 P00C8 P00C9 or P00CA;Fuel Pressure Regulator
-DTC P0096 or P0111;Intake Air Temperature (IAT) Sensor 2 Performance
-DTC P0097 P0098 or P0099;Intake Air Temperature (IAT) Sensor 2
-DTC P00C7;"Intake Air Pressure Measurement System - Multiple
-Sensors Not Plausible"
-DTC P00F4 P00F6;Intake Air Humidity Sensor
-DTC P00FF P069E P06EC P07O0 P0800;Control Module Requested MIL Illumination
-P0AC4 P1E00 P2561 P25A2 P25AF P25C9;Control Module Requested MIL Illumination
-P26C8 or P26C9;Control Module Requested MIL Illumination
-DTC P0101;Mass Air Flow (MAF) Sensor performance
-DTC P0102 or P0103;Mass Air Flow (MAF) Sensor
-DTC P0106;"Manifold Absolute Pressure (MAP) Sensor
-Performance"
-DTC P0107 or P0108;Manifold Absolute Pressure (MAP) Sensor
-DTC P0112 P0113 or P0114;Intake Air Temperature (IAT) Sensor 1
-DTC P0117 P0118 or P0119;Engine Coolant Temperature (ECT) Sensor
-DTC P0121 P0123 P0222 P0223 P16A0-;Throttle Position Sensor/Sensor Communication
-P16A2 or P2135;Circuit
-DTC P0128;"Engine Coolant Temperature (ECT) Below
-Thermostat Regulating Temperature"
-DTC P0131 P0132 P0137 or P0138;HO2S Circuit Low/High Voltage Sensor
-"DTC P0133 P013A P013B P013E P013F
-P015A P015B P2270 or P2271";HO2S Slow/Delayed Response
-DTC P0171 or P0172;Fuel Trim System
-DTC P0191 or P0192;Fuel Rail Pressure Sensor Performance
-"DTC P0182 P0183 P0187 P0188 P111F
-P126E or P126F";Fuel Temperature Sensor
-DTC P018B P018D;Fuel Pressure Sensor
-"DTC P0201 P0204 P0261 P0262 P0264 P0265
-P0267 P0268 P0270 P0271 P1248 P1249
-P124A P124B P2147 P2148 P2150 P2151
-P2153 P2154 P2156 or P2157";Cylinder Injector Control
-DTC P0231 P0232 or P023F;Fuel Pump Control
-DTC P0300 P0304;Engine/Cylinder Misfire Detected
-DTC P0315;Crankshaft Position System Variation Not Learned
-DTC P0324 P0326 or P06B6;"Knock Sensor System Performance/Control Module
-Knock Sensor Processor Performance"
-DTC P0325 P0327 or P0328;Knock Sensor Circuit
-DTC P0335 or P0336;Crankshaft Position Sensor
-DTC P0340 P0341 P0365 or P0366;Intake/Exhaust Camshaft Position Sensor
-"DTC P0351 P0354 P2300 P2301 P2303 P2304
-P2306 P2307 P2309 or P2310";Ignition Coil Control Circuit
-DTC P0401;Exhaust Gas Recirculation (EGR) Flow Insufficient
-DTC P0403 P0489 or P0490;Exhaust Gas Recirculation (EGR) Control
-DTC P0404 or P042E;"Exhaust Gas Recirculation Open/Closed Position
-Performance"
-DTC P0405 or P0406;Exhaust Gas Recirculation (EGR) Position Sensor
-DTC P040B P040E or P041B-P041E;"Exhaust Gas Recirculation (EGR) Temperature
-Sensor"
-DTC P0420;Catalyst System Low Efficiency
-DTC P043E P043F or P145F;Evaporative Emission (EVAP) System Reference
-DTC P0442 or P0455;Evaporative Emission (EVAP) System
-DTC P0443 P0458 or P0459;Evaporative Emission (EVAP) Purge Solenoid Valve Control
-DTC P0446;"Evaporative Emission (EVAP) Vent System
-Performance"
-DTC P0449 P0498 or P0499;"Evaporative Emission (EVAP) Vent Solenoid Valve
-Control"
-DTC P0451 P0453;Fuel Tank Pressure Sensor
-DTC P0497;"Evaporative Emission (EVAP) System No Flow
-During Purge"
-DTC P050D;Cold Start Rough Idle
-DTC P057B P057E;Brake Pedal Position Sensor
-DTC P0601 P0604 P0606 P062B P062F;Control Module Performance
-P0630 P16F3 or P262B;Control Module Performance
-DTC P0627 P0629;Fuel Pump Enable Circuit
-DTC P0641 P0651 P0697 P06A3 or P06D2;5 V Reference Circuit
-DTC P0650 P263A or P263B;Malfunction Indicator Lamp (MIL) Control
-DTC P0685 P0690 P1682 P16A7 P16AF or;"Engine Controls Ignition Relay/Ignition 1 Switch
-Circuit 2"
-P16B3;"Engine Controls Ignition Relay/Ignition 1 Switch
-Circuit 2"
-DTC P06E4;"Control Module Wake-Up Circuit Performance
-(ECM)"
-DTC P1101;Intake Air Flow System Performance
-DTC P111E;Engine Coolant Temperature Sensor Not Plausible
-DTC P1255;"Fuel Pump Control Module Driver High
-Temperature"
-DTC P127C P128A P128D P128F P16E4 or;"Fuel Rail Pressure Sensor/Sensor Communication
-Circuit"
-P16E5;"Fuel Rail Pressure Sensor/Sensor Communication
-Circuit"
-DTC P129E or P12A8;"Fuel Pump Control Signal Message Counter
-Incorrect"
-DTC P129B or P129C;Fuel Pump Driver Control Module System
-DTC P129D;"Fuel Pump Driver Control Module Ignition On/Start
-Switch Circuit Low Voltage"
-DTC P12A6;"Fuel Pump Driver Control Module Enable Circuit
-Performance"
-DTC P135A;Ignition Coil Supply Voltage Circuit Bank 1
-DTC P1400;Cold Start Emission Reduction Control System
-DTC P145C or P145D;Evaporative Emission (EVAP) System
-DTC P145E;"Evaporative Emission (EVAP) System Leak
-Detection Pump to Vent Solenoid Valve Leak
-Detected"
-DTC P1461;"Evaporative Emission (EVAP) System Pressure
-Incorrect During Fuel Fill Door Open Request"
-DTC P1462;"Evaporative Emission (EVAP) System Reference
-Orifice Flow Erratic"
-DTC P1426;"Exhaust Gas Recirculation (EGR) Valve Internal
-Performance"
-DTC P1427 P142A or P1437;EGR Temperature Sensor
-DTC P1516 P2101 P2119 or P2176;"Throttle Actuator Control (TAC) Module Throttle
-Actuator Position Performance"
-DTC P15F2;"Engine Torque Command Signal Message Counter
-Incorrect"
-DTC P15F9;"Hybrid/EV System Engine Speed Control
-Intervention Request Type Signal Message Counter
-Incorrect"
-DTC P15FB;"Brake Pedal Position Sensor Signal Message
-Counter Incorrect"
-DTC P162D;"Evaporative Emission (EVAP) System Alarm Clock
-Signal Not Received"
-DTC P163A;"Control Module Fuel Pressure Regulator 1 Control
-System Circuitry Performance"
-DTC P2096 or P2097;Post Catalyst Fuel Trim System
-DTC P2122 P2123 P2127 P2128 or P2138;Accelerator Pedal Position (APP) Sensor
-DTC P2199;"Intake Air Temperature (IAT) Sensor 1-2 Not
-Plausible"
-DTC P219A;Fuel Trim Cylinder Balance
-DTC P2227 P2230;Barometric Pressure (BARO) Sensor
-DTC P2400 P2402;"Evaporative Emission (EVAP) System Leak
-Detection Pump"
-DTC P2418 P2420;"Evaporative Emission (EVAP) System Leak
-Detection Pump Switching Valve Control Circuit"
-DTC P2422;"Evaporative Emission (EVAP) Vent Solenoid Valve
-Stuck Closed"
-DTC P2450;"Evaporative Emission (EVAP) System Leak
-Detection Pump Switching Valve Performance"
-DTC P2457;"Exhaust Gas Recirculation (EGR) Cooler Low
-Efficiency"
-DTC P24B9 P24BB;"Evaporative Emission (EVAP) System Leak
-Detection Pump Pressure Sensor"
-DTC P2618;"Crankshaft Position Signal Output Circuit Low
-Voltage"
-DTC P2635;Fuel Pump Flow Performance
-DTC P00B3 or P00B4;"Radiator Coolant Temperature (RCT) Sensor Circuit
-Low/High Voltage"
-DTC P00B7;Engine Coolant Flow Insufficient
-DTC P0597 P0599;Engine Coolant Thermostat Heater Control Circuit
-DTC P112F;Radiator Coolant Temperature Sensor Not Plausible
-DTC P1485 P1487;Cooling Fan Output Circuit
-DTC P2181;Engine Cooling System Performance
-DTC P06DA P06DE;Engine Oil Pressure Control Solenoid Valve
-DTC B0283;Rear Defogger Circuit
-DTC B316B B317A B318A or B319A;Window Switch
-DTC B3205;Driver Window Motor
-DTC B010E;Pedestrian Friendly Alert Audio Output Circuit
-DTC B274E or B274F;Low Note Horn Relay Control Circuit
-DTC B0163;Passenger Compartment Temperature Sensor Circuit
-DTC B0173 or B0178;"Upper Left Duct Air Temperature Sensor
-Circuit/Lower Left Duct Air Temperature Sensor
-Circuit"
-DTC B018A B048C B048F or B1395;"Windshield Temperature Sensor Circuit/Humidity
-Sensor Humidity Circuit/Humidity Sensor
-Temperature Circuit/Control Module Voltage
-Reference Output Circuit Voltage"
-DTC B0183;Solar Load Sensor Circuit
-DTC B0193;Front Blower Motor Speed Circuit
-DTC B0223 B0233 B023A or B0408;"Recirculate Position Command 1 Circuit/Air Flow
-Control Circuit/HVAC Actuators Supply
-Voltage/Main Temperature Control Circuit"
-DTC B048E;Auxiliary Heater System
-DTC B3844;Engine Coolant Circulation Pump Circuit
-DTC P0531 P0532 or P0533;Air Conditioning (A/C) Refrigerant Pressure Sensor
-DTC P0534;Air Conditioning (A/C) Refrigerant Charge Low
-DTC P0D69 P0D7F;"A/C Compressor Motor Voltage Sensor/Electric A/C
-Compressor Control Module Internal Temperature
-Sensor/Electric A/C Compressor Control Module
-Output Driver Temperature Sensor"
-DTC P151C or P2516 P2518;"Air Conditioning (A/C) Refrigerant Low Side
-Pressure Sensor"
-DTC P154F;"Electric A/C Compressor motor Input Current-
-Positive Contactor State Not Plausible"
-DTC P156A P156C;"Air Conditioning (A/C) Pressure Too High when A/C
-Off/Air Conditioning (A/C) Pressure Too Low when
-A/C On"
-DTC P15C6 or P15C8 P15CB;"Electric A/C Compressor Speed Request Signal
-Message Counter Incorrect/Electric A/C Compressor
-Data Message Counter Incorrect/Electric A/C
-Compressor Status Message Counter
-Incorrect/Electric A/C Compressor Sensors Signal
-Message Counter Incorrect/Electric A/C Compressor
-Sensors Status Message Counter Incorrect"
-DTC P1F0A P1F0D;"A/C Compressor Motor Speed Performance/A/C
-Compressor Motor Start-Up Current
-Performance/Electric A/C Compressor Control
-Module A/C Compressor Motor Current Feedback
-Circuit Voltage"
-DTC P15C5 P2682 P2683 P26A5 P26A7;"Engine Coolant Bypass Valve Position
-Sensor/Engine Coolant Bypass Valve Control
-Circuits"
-P26A9 P26AD or P26AE;"Engine Coolant Bypass Valve Position
-Sensor/Engine Coolant Bypass Valve Control
-Circuits"
-DTC P0335 or P0336;Crankshaft Position Sensor
-DTC P0506 or P0507;Idle Speed Low/High
-DTC P0601 P0604 P0606 P062F P1EB6 or;"Control Module (Hybrid/EV Powertrain Control
-Module 1)"
-P1EB7;"Control Module (Hybrid/EV Powertrain Control
-Module 1)"
-DTC P061A or P061B;Control Module Torque System
-DTC P06AF;"Torque Management System Performance - Forced
-Engine Shutdown"
-DTC P06B1 P06B2 P06B4 P06B5 P06E7 or;Sensor Supply Voltage
-P06E8;Sensor Supply Voltage
-DTC P0A1B or P0A1C;Drive Motor Control Module Performance
-DTC P0A3F P0A40 P0C52 P0C53 P0C5C;Drive Motor 1 Position Sensor
-P0C5D or P1B03;Drive Motor 1 Position Sensor
-DTC P0A45 P0A46 P0C57 P0C58 P0C61;Drive Motor Position Sensor
-P0C62 or P1B04;Drive Motor Position Sensor
-DTC P0A5E P0A61 P0A64 P0A67 P0A6A or;Drive Motor Phase
-P0A6D;Drive Motor Phase
-DTC P0A78 or P0A79;Drive Motor Inverter Performance
-DTC P0AB9;Hybrid/EV System Performance
-DTC P0AEE P0AEF P0AF0 P0AF3 P0AF5;Drive Motor Inverter Temperature Sensor
-P0BD2-P0BD4 P0BD7-P0BD9 P0BDC-P0BDE;Drive Motor Inverter Temperature Sensor
-or P0BE1-P0BE3;Drive Motor Inverter Temperature Sensor
-DTC P0B01 P0B04 or P0B07;Auxiliary Transmission Fluid Pump Low Current
-DTC P0BE6 P0BE8 P0BEA-P0BEC P0BEE;Drive Motor
-P0BEF P0BF0 P0BF2-P0BF4 P0BF6-P0BF8 or;Drive Motor
-P0BFA-P0BFC;Drive Motor
-DTC P0BFD or P0BFE;Drive Motor Phases `V-W Not Plausible
-DTC P0C01 or P0C04;Drive Motor High Current
-DTC P0C0B or P0C0E;Drive Motor Inverter Supply Voltage Circuit
-DTC P0C11 P0C16;Drive Motor Inverter Phase
-DTC P0C17 P0C18 P1B0F or P1B10;Drive Motor Position
-DTC P0C19;Drive Motor 1 Torque Delivered Performance
-DTC P0C1A;Drive Motor 2 Torque Delivered Performance
-DTC P0C28;Auxiliary Transmission Fluid Pump High Current
-DTC P0C4E;Drive Motor 1 Position Exceeded Learning Limit
-DTC P0C4F;Drive Motor 2 Position Exceeded Learning Limit
-DTC P0C76;Hybrid/EV Battery System High Voltage Present
-DTC P150D or P150E;Supply Voltage Circuit
-DTC P15F0;"Engine Torque Delivered Signal Message Counter
-Incorrect"
-DTC P15F1;"Axle Torque Request Signal Message Counter
-Incorrect"
-DTC P15F2;"Engine Torque Command Signal Message Counter
-Incorrect"
-DTC P15FC;"Hybrid/EV Battery Contactor Status Message
-Counter Incorrect"
-DTC P16E0;Engine Performance - No Torque Detecte
-DTC P16F3;"Control Module Redundant Memory Performance
-(Hybrid/EV Powertrain Control Module 1)"
-DTC P16F4;"Control Module Transmission Range Switch
-(Hybrid/EV Powertrain Control Module 1)"
-DTC P16F6;"Control Module Transmission Range Calculation
-Performance (Hybrid/EV Powertrain Control
-Module 1)"
-DTC P179A;Auxiliary Transmission Fluid Pump Overspeed
-DTC P190A P190F;Drive Motor Inverter Phase
-DTC P1A4F P1A50 P1A54 P1ADC or P1ADD;Drive Motor Control Module
-DTC P1ADE P1ADF P1AE0 or P1AE1;Drive Motor Control Module System
-DTC P1AEE or P1AEF;"Drive Motor Control Module Hybrid/EV Battery
-System Voltage High Voltage"
-DTC P1AF0 or P1AF2;"Drive Motor Control Module Hybrid/EV Battery
-Voltage System Isolation Lost"
-DTC P1AF4 P1AF7;"Drive Motor Control Module Hybrid/EV Battery
-Voltage Isolation Sensing Circuit"
-DTC P1B0B or P1B0C;"Drive Motor 1 Control Module Hybrid/EV Battery
-Voltage Isolation Sensing Circuit"
-DTC P1B0D or P1B0E;"Drive Motor Control Module Drive Motor
-Overspeed"
-DTC P1B15;"Regenerative Braking Torque Request Signal
-Message Counter Incorrect"
-DTC P1B41 or P1B42;"Drive Motor Control Module Hybrid/EV Battery
-Voltage Isolation Sensing Performance"
-DTC P1B43 or P1B44;"Drive Motor Control Module Hybrid/EV Battery
-Voltage Isolation Sensing Circuit"
-DTC P1E0A or P1E0B;"Drive Motor Control Module Torque Calculation
-Performance"
-DTC P1E1B P1E1F;"Auxiliary Transmission Fluid Pump Control Module
-Hybrid/EV Battery Voltage Isolation Sensing Circuit"
-DTC P1E22;"Auxiliary Transmission Fluid Pump Control Module
-Hybrid/EV Battery Voltage System Isolation Lost"
-DTC P1E29;"Auxiliary Transmission Fluid Pump Control Module
-Calculated Motor Position Performance"
-DTC P1E2A P1E2F;Auxiliary Transmission Fluid Pump Phase
-DTC P1E34 P1E36;"Auxiliary Transmission Fluid Pump Inverter
-Temperature Sensor"
-DTC P1E37;"Auxiliary Transmission Fluid Pump Inverter High
-Temperature"
-DTC P1E38;"Auxiliary Transmission Fluid Pump Inverter Supply
-Voltage Circuit"
-;"Auxiliary Transmission Fluid Pump Inverter Supply
-Voltage Circuit"
-DTC P1E39;"Auxiliary Transmission Fluid Pump Inverter
-Performance"
-DTC P1E3A;"Auxiliary Transmission Fluid Pump Motor Torque
-Delivered Performance"
-DTC P1E4A or P1E4B;"Control Module Redundant Drive Motor 1 Speed
-Sensing Circuit"
-DTC P1F00;"Auxiliary Transmission Fluid Pump Inverter
-Temperature Sensor Circuit Erratic"
-DTC P1F63 P1F65;Hybrid/EV System Voltage Discharge Circuit
-DTC P2797;Auxiliary Transmission Fluid Pump Performance
-DTC P3260;Internal Control Module Drive Motor Control Performance
-DTC P0480;Cooling Fan Relay Control Circuit
-DTC P0A7E;Hybrid/EV Battery Pack High Temperature
-DTC P0A9C P0A9E P0AC6-P0ACD P0AE9-;Hybrid/EV Battery Temperature Sensor
-P0AEB P0BC3-P0BC5 or P0C34-P0C36;Hybrid/EV Battery Temperature Sensor
-DTC P0C43 P0C46;"Hybrid/EV Battery Pack Coolant Temperature
-Sensor"
-DTC P0C47 P1E8C or P1E8D;Hybrid/EV Battery Pack Coolant Pump
-DTC P0CE9 P1F44 or P1F45;Hybrid/EV Electronics Coolant Pump
-DTC P0CEF P0CF2;Hybrid/EV Electronics Coolant Temperature Sensor
-DTC P19FA P19FC;Hybrid/EV Electronics Coolant Pump Feedback
-DTC P19FD P19FF;"Hybrid/EV Battery Pack Coolant Pump Feedback
-Circuit"
-DTC P148A P148C;Cooling Fan Signal Circuit
-DTC P1EC6;Hybrid/EV Battery Pack Heater Performance
-DTC P1FFB P1FFE;Hybrid/EV Battery Pack Coolant Level
-DTC P1FFF;"System Isolation/Coolant Level Sensor Fault -
-Hybrid/EV Battery Charging System Disabled"
-DTC P0A0C or P0A0D;High Voltage System Interlock Circuit Voltage
-DTC P0A7F;Hybrid/EV Battery Pack
-DTC P0AA1 P0AA4 P0AD9 P0ADD P0AE3;"Hybrid/EV Battery Positive Contactor/Hybrid/EV
-Battery Negative Contactor/Hybrid/EV Battery
-Precharge Contactor/Battery Charging System
-Positive Contactor/Battery Charging System
-Contactor(s) Stuck Open/Hybrid/EV Battery System
-Contactor(s) Stuck Open/Hybrid/EV Battery Pack
-Heater Transistor Control Circuit"
-P0AE4 P0D09 P0D0A P1EBD P1EC0 or;"Hybrid/EV Battery Positive Contactor/Hybrid/EV
-Battery Negative Contactor/Hybrid/EV Battery
-Precharge Contactor/Battery Charging System
-Positive Contactor/Battery Charging System
-Contactor(s) Stuck Open/Hybrid/EV Battery System
-Contactor(s) Stuck Open/Hybrid/EV Battery Pack
-Heater Transistor Control Circuit"
-P1EC3;"Hybrid/EV Battery Positive Contactor/Hybrid/EV
-Battery Negative Contactor/Hybrid/EV Battery
-Precharge Contactor/Battery Charging System
-Positive Contactor/Battery Charging System
-Contactor(s) Stuck Open/Hybrid/EV Battery System
-Contactor(s) Stuck Open/Hybrid/EV Battery Pack
-Heater Transistor Control Circuit"
-DTC P0AA6 or P1AE6;"Hybrid/EV Battery Voltage System Isolation
-Lost/Battery Energy Control Module Hybrid/EV
-Battery Voltage Isolation Sensor Circuit"
-DTC P0ABB P0ABC or P0ABD;Hybrid/EV Battery Voltage Sensor
-DTC P0AC1 P0AC2 P0B10 P0B11 P0B13;"Hybrid/EV Battery Low Resolution Current
-Sensor/Hybrid/EV Battery High Resolution Current
-Sensor"
-P1EBA or P1EBB;"Hybrid/EV Battery Low Resolution Current
-Sensor/Hybrid/EV Battery High Resolution Current
-Sensor"
-DTC P0AF8;Hybrid System Voltage
-DTC P0AFA or P0AFB;Hybrid/EV Battery System Voltage
-DTC P0B3B P0BBB P1B16-P1B2D P1B45-;Hybrid/EV Battery (1-96) Circuit(s)
-P1BFE P1E01-P1E06 or P1E4C-P1E8B;Hybrid/EV Battery (1-96) Circuit(s)
-DTC P0C78 or P3061;"Hybrid/EV Battery System Precharge Time Too
-Long/Hybrid/EV Battery Precharge High Current"
-DTC P1A07 P1E93 P1E99 P1E9F P1EA5;"Battery Energy Control Module 5 V Reference
-Circuit/Hybrid/EV Battery Interface Control Module
-(1-12) 5 V Reference Circuit(s)"
-P1FC3 P1FC8 P3035 or P3040;"Battery Energy Control Module 5 V Reference
-Circuit/Hybrid/EV Battery Interface Control Module
-(1-12) 5 V Reference Circuit(s)"
-DTC P1E92 P1E98 P1E9E P1EA4 P1FC9;"Hybrid/EV Battery Interface Control Module (1-12)
-Cell Balancing Circuit(s)"
-P1FCA P1FCE P3036 or P3041;"Hybrid/EV Battery Interface Control Module (1-12)
-Cell Balancing Circuit(s)"
-DTC P1EAB or P1EAC;"Battery Energy Control Module Hybrid/EV Battery
-Cell High Voltage/Hybrid/EV Battery Cell
-Overvoltage Signal Circuit Performance"
-DTC P1FD5 P1FF2 P3038-P303A or P3043-;"Hybrid/EV Battery Interface Control Module (1-12)
-Voltage Sensor(s)"
-P3045;"Hybrid/EV Battery Interface Control Module (1-12)
-Voltage Sensor(s)"
-DTC P1F17;"System Isolation / Impact Sensor Fault - Hybrid/EV
-Battery System Contactors Open"
-DTC P0CF4 P0CF6;Control Pilot Circuit
-DTC P0CF9 or P0D01;Control Pilot Charging Switch Performance
-DTC P0D1F;"Control Module Date/Time Synchronization
-Performance"
-DTC P0D26;Battery Charger System Precharge Time Too Long
-DTC P0D2B or P0D2C;Control Pilot/Status Indicator Control Circuit
-DTC P0D3E P0D40;Battery Charger Input Voltage Sensor
-DTC P0D4D P0D4F;"Battery Charger Hybrid/EV Battery Output Voltage
-Sensor"
-DTC P0D58 or P0D59;Proximity Detection Circuit Low/High Voltage
-DTC P0D5A;Proximity Detection Circuit Erratic
-DTC P0D5C;"Battery Charger Hybrid/EV Battery Output Power
-Performance"
-DTC P0D5E;Battery Charger System High Voltage Present
-DTC P0E61 or P0E65;Battery Charger Enable Circuit
-DTC P1EE6;Battery Charger AC Voltage Not Present
-DTC C0075;Brake Pedal Position Sensor Performance
-DTC C0579 C057A or C057E;Brake Booster Control Module Temperature Sensor
-DTC C057F C0582 C058A C0590 C0591;Brake Booster Motor
-C0595 C0596 or C1275 C1277;Brake Booster Motor
-DTC C0580 or C0594;Brake Booster Motor
-DTC C1072;Brake Fluid Level Sensor Circuit
-DTC C111C;Low Brake Fluid Indicated
-DTC C1278 or C1279;Brake System Data 2 Message Counter Incorrect
-DTC C1449;System Configuration Error
-DTC P057B P057E P05DC-P05DF or P05E0;Brake Pedal Position Sensor
-DTC P0601 P0603 P0604 P0606 P060B or;Control Module
-P062F;Control Module
-DTC P0642 P06A6 or P06A7;Sensor Reference Voltage
-DTC P25C6 or P25C7;Brake Booster Temperature Sensor
-DTC B2955;Security Sensor Data Circuit Malfunction
-DTC B302A;"Mobile Telephone Communications Interface
-Requested Immobilization"
-DTC B3031;Security Controller In Learn Mode
-DTC B3055;No Transponder Modulation or No Transponder
-DTC B305C;"Immobilizer Transponder of Wrong Type
-Programmed"
-DTC B3060;"Unprogrammed Transponder Identification Code
-Received"
-DTC B3899;Incorrect Immobilizer Identifier Received
-DTC B389A;Environment Identification
-DTC B3902;Incorrect Immobilizer Identifier Received
-DTC B3924 B3928;Incorrect Environmental Identifier Received
-DTC B3935;Transponder Authentication
-DTC B3976;Unconfigured Transponder
-DTC B3978 B3982;Incorrect Environmental Identifier Received
-DTC B3984;Device 1 Environment Identifier Not Programmable
-DTC P0513;Immobilizer Key Incorrect
-DTC P0633;Immobilizer Key Not Programmed
-DTC P162B;"Remote Vehicle Speed Limiting Signal Message
-Counter Incorrect"
-DTC P1631;Immobilizer Fuel Enable Signal Not Correct
-DTC P1649;Immobilizer Security Code Not Programmed
-DTC B0158;Ambient Air Temperature Sensor
-DTC B0550;Odometer Circuit General Memory Malfunction
-DTC B071F;Transmission Range Indicator Internal Malfunction
-DTC B124F;MOST Programming Failure
-DTC P0071 P0074;Ambient Air Temperature Sensor
-DTC P0461 P0464;Fuel Level Sensor
-DTC P0521 P0522 or P0523;Engine Oil Pressure Sensor
-DTC B305D;Challenge Active Circuit
-DTC B3101;Keyless Entry Data Link Circuit
-DTC B3105;Keyless Entry Transmitters
-DTC B3106;Keyless Entry Data Link
-DTC B3109 B3113;Keyless Entry Transmitter (1-5) Battery
-DTC B310D B310F;Keyless Entry Transmitter (6-8) Battery
-DTC B3119;Keyless Entry Antenna 1
-DTC B3120;Keyless Entry Antenna 2
-DTC B3121;Keyless Entry Antenna 3
-DTC B3122;Keyless Entry Antenna 4
-DTC B3123;Keyless Entry Antenna 5
-DTC B3124;Keyless Entry Antenna 6
-DTC B1395;"Control Module Voltage Reference Output Circuit
-Voltage"
-DTC B1480;Battery Rundown Protection Circuit Short to Ground
-DTC B2545;Backup Lamps Circuit
-DTC B255D;Passenger Compartment Lamp Control 2 Circuit
-DTC B2570;Trunk Lamp Control Circuit Short to Ground
-DTC B2575 or B2699;"Left Headlamp Control Circuit/Right Headlamp
-Control Circuit"
-DTC B257A;"Headlamp Switch Input Signals Correlation
-Malfunction"
-DTC B2580;Headlamp High Beam Control Circuit
-DTC B2585 or B3867;"Left Park Lamps Control Circuit/Right Park Lamps
-Control Circuit"
-DTC B2600 or B2605;"Left Daytime Running Lamps Control Circuit Short
-to Ground/Right Daytime Running Lamps Control
-Circuit Short to Ground"
-DTC B2610;Passenger Compartment Dimming 1 Circuit
-DTC B2615;"Passenger Compartment Dimming 2 Circuit Short to
-Ground"
-DTC B2625;"Display Dimming Pulse Width Modulation Output
-Circuit Short to Ground"
-DTC B3596;Hazard Lamps Request Circuit Malfunction
-DTC B3600;"Passenger Compartment Dimming Request Signal
-Circuit Voltage"
-DTC B3650;"High Beam Request Signal Circuit Performance -
-Signal Invalid"
-DTC B3806;"High Beam and Headlamp Flash Select Circuit
-Malfunction"
-DTC B3881 or B3882;Left Tail Lamp Circuit/Right Tail Lamp Circuit
-DTC B3883;License Plate Lamp Circuit
-DTC B3884;Center High Mounted Stop Lamp Circuit
-DTC B3948 or B3949;"Left Front Turn Signal Circuit/Right Front Turn
-Signal Circuit"
-DTC B3950 or B3951;"Left Rear Turn Signal Circuit/Right Rear Turn
-Signal Circuit"
-DTC C0277 or C0890;"Brake Pedal Position Sensor Circuit/Control Module
-Voltage Reference Output 3 Circuit Voltage"
-DTC C0297;Brake Applied Output Circuit Short to Ground
-DTC B094B or B094C;"Left Side Object Detection Control Module/Right
-Side Object Detection Control Module"
-DTC B0954 B0955 B0956 or B0957;Parking Assist Front Sensor Circuits
-DTC B0958 B0959 B0960 or B0961;Parking Assist Rear Sensor Circuits
-DTC B096B;Parking Assist Switch Parallel Parking Circuit
-DTC B096C or B096D;"Parking Assist Side Sensor Left Front
-Circuit/Parking Assist Side Sensor Right Front
-Circuit"
-DTC B0987;Vehicle Direction Camera Indicator Circuit
-DTC B1011;System Disabled Information Stored
-DTC B1015;Vehicle Identification Number Information
-"DTC B101D (DTC set in K109 Frontview
-Camera Module)";Electronic Control Unit Hardware
-DTC B127B;"Rearview Camera Input Signal Circuit Missing
-Reference"
-DTC B1405;Control Module Voltage Reference Output 2 Circuit
-DTC B356A;"Vehicle Direction Warning Switch Circuit Short to
-Ground"
-DTC B390C;Long Range Radar Sensor Module
-DTC B390D;Frontview Camera Module Incorrect Mounting
-DTC P15F6;"Front Object Detection Control Module Torque
-Request Signal Message Counter Incorrect"
-DTC C1138;"Supply Voltage Goes Below 7 V/Above 16.5
-V/Signal Performance"
-DTC C1148;Left Park Brake Actuator Circuit
-DTC C114C;Park Brake Switch Circuit
-DTC C1586;Right Park Brake Actuator Circuit
-DTC C1587;Left Park Brake Actuator
-DTC C1588;Right Park Brake Actuator
-DTC B1474 or B3849;"Passenger Exterior Door Handle Switch Circuit
-Short to Ground/Driver Exterior Door Handle
-Switch Circuit Short to Ground"
-DTC B1534 or B1535;"Left Rear Door Handle Switch Circuit Short to
-Ground/Right Rear Door Handle Switch Circuit
-Short to Ground"
-DTC B297B or B297C;Driver Door Open Switch Circuit Not Plausible
-DTC B3125 B3130 or B3135;"Driver Door Only Unlock Circuit/All Doors Unlock
-Circuit/All Doors Lock Circuit"
-DTC B3140 B3145 B3150 or B3155;Door Unlock Switch Circuits
-DTC B3265;Trunk Lid Unlatch Output Circuit Short to Ground
-DTC B3618;"Exterior Liftgate Unlatch Switch Circuit
-Malfunction"
-DTC P0CCC P0CCE or P0CCF;Charge Port Door Position Sensor Circuit
-DTC P04B6;Fuel Fill Door Stuck Closed
-DTC P04B8 P04BA;Fuel Fill Door Position Sensor Circuit
-DTC P04BB P04BC or P04C0;Fuel Fill Door Lock Control Circuit
-DTC P04C8 P04CA or P04CB;Fuel Fill Door Open Request Switch Circuit
-DTC P169D;"Fuel Fill Door Open Request Switch Wake-Up
-Circuit Performance"
-DTC C0176;"Control Module Temperature Sensor High
-Temperature"
-DTC C0460;Steering Wheel Angle Sensor
-DTC C0475;Power Steering Motor Circuit Malfunction
-DTC C0545;Steering Wheel Torque Sensor
-DTC C055C;Steering Gear Performance Malfunction
-DTC C0569;"Internal Check Sum Error/Calibration Not
-Programmed/Configuration Not Programmed"
-DTC C056D;"Electronic Control Unit Hardware (Power Steering
-Control Module)"
-DTC C056E;Electronic Control Unit Software
-DTC C1436;Steering Wheel Angle Signal
-DTC B0072 or B0073;Driver/Passenger Seat Belt Switch
-DTC B059A;Passenger Seat Belt Indicator Circui
-DTC B191A or B191B;Front/Rear Heated Seat Modul
-DTC B3622;Steering Wheel Controls Signal Circuit
-DTC B270A;"Park Lock Solenoid Control Circuit Short to
-Battery/Groun"
-DTC B0012 or B0013;"Driver Steering Wheel Air Bag Deployment Loop
-Stage 1/Driver Steering Wheel Air Bag Deployment
-Loop Stage 2"
-DTC B0014 B0021 B0031 or B0038;Seat Side Air Bag Deployment Loops
-DTC B0015 B001A B001B or B0022;"Seat Belt Retractor Pretensioner Deployment
-Loops/Seat Belt Anchor Pretensioner Deployment
-Loops"
-DTC B0016 B0018 B0023 or B0025;"Left Roof Rail Air Bag Deployment Loop/Right
-Roof Rail Air Bag Deployment Loop"
-DTC B0017 or B0024;"Driver Knee Air Bag Deployment Loop/Passenger
-Knee Air Bag Deployment Loop"
-DTC B0019 or B0020;"Passenger Instrument Panel Air Bag Deployment
-Loop Stage 1/Passenger Instrument Panel Air Ba"
-DTC B0052;Deployment Commanded
-DTC B0074;Passenger Presence Sensor
-DTC B0081;Passenger Presence Module
-DTC B0083 or B0084;Left Front Impact Sensor/Right Front Impact Sensor
-DTC B0085 or B0088;"Left Front Side Impact Sensor/Right Rear Side
-Impact Sensor"
-DTC B0086 or B0087;"Right Front Side Impact Sensor/Left Rear Side
-Impact Sensor"
-DTC B067F or B0680;"Passenger Air Bag On Indicator Circuit/Passenger
-Air Bag Off Indicator Circuit"
-DTC B1001;"Option Configuration (Inflatable Restraint Sensing
-and Diagnostic Module)"
-DTC B1001;"Option Configuration Error (Passenger Presence
-System)"
-DTC B1019;System Configuration Error
-DTC B291A;"Content Theft Deterrent Assembly Internal
-Malfunction"
-DTC B291B;Content Theft Deterrent Sensor
-DTC C0569;System Configuration Malfunction
-DTC C0750 C0755 C0760 or C0765;Front Tire Pressure Sensor
-DTC C0775;"Tire Pressure Monitoring System Sensors Malfunction"
-DTC B3715;Windshield Wiper Relay Circuit
-DTC B371A;Windshield Wiper Motor Internal Malfunction
-DTC B371C;Front Wiper Motor 2
-DTC B097B;Power Mode Start Switch Circuit (1 Of 2)
-DTC B097B;Power Mode Start Switch Circuit (2 Of 2)
-DTC B097C;"Power Mode Run/Crank Indicator Circuit Short to
-Ground"
-DTC B1370;"Control Module Ignition On and Start Circuit
-(Instrument Cluster)"
-DTC B144A;Run Power Relay Circuit
-DTC B144B;Run/Crank Power Relay Circuit
-DTC B1451;Accessory Power Circuit
-DTC B305E;Interruptible RAP Relay Circuit
-DTC P15B9 or P15BA;"Electric A/C Compressor Control Module Ignition
-On/Start Switch Circuit Voltage"
-DTC P1A5E or P1A5F;"Battery Energy Control Module Ignition On/Start
-Switch Circuit Low Voltage"
-DTC P1A60;"Battery Energy Control Module Ignition Accessory
-Switch Circuit Low Voltage"
-DTC P2534 or P2535;Ignition On/Start Switch Circuit Voltage
-DTC P2537;Ignition Accessory Switch Circuit Low Voltag
-U0001;High Speed CAN Bus Malfunction
-U0002;High Speed CAN Bus
-U0009;High Speed CAN Bus [-] Shorted to Bus [+]
-U0020;Low Speed CAN Bus
-U0028;MOST Bus
-U0029;MOST Bus Performance
-U0073;Control Module Communication Bus A Off
-;Control Module Communication High Speed CAN Bus Off
-U0074;Control Module Communication Bus B Off
-;Control Module Communication Powertrain Expansion CAN Bus Off
-U0075;Control Module Communication Object Detection CAN Bus Off
-U0076;Control Module Communication Powertrain Sensor CAN Bus Off
-U0077;Control Module Communication Chassis Expansion CAN Bus Off
-U0078;Control Module Communication Low Speed CAN Bus Off
-U007A;Control Module Communication High Voltage Energy Management CAN Bus Off
-U007B;Control Module Communication High Speed Extension CAN Bus Off
-U007C;Control Module Communication High Speed Extension CAN Bus 2 Off
-U007D;Control Module Communication Low Speed Extension CAN Bus Off
-U007E;Control Module Communication FlexRay 1A Bus Off
-U007F;Control Module Communication FlexRay 1B Bus Off
-U0100;Lost Communication With Engine Control Module
-U0101;Lost Communication With Transmission Control Module
-U0102;Lost Communication with Transfer Case Control Module
-U0103;Lost Communication with Shift Lever Module
-U0104;Lost Communication With Cruise Control Module
-U0105;Lost Communication with Fuel Injector Control Module
-U0106;Lost Communication with Glow Plug Control Module
-U0109;Lost Communication with Fuel Pump Control Module (2013 and prior)
-;Lost Communication with Chassis Control Module (2014 and beyond)
-U010C;Lost Communication with Turbocharger Boost Control Module
-U010E;Lost Communication with Reductant Sensor Module
-U010F;Lost Communication with Air Conditioning Control Module
-U0111;Lost Communication with Battery Energy Control Module
-U0112;Lost Communication with Battery Energy Control Module
-U0114;Lost Communication with Four Wheel Drive Clutch Control Module
-U0115;Lost Communication with Engine Control Module B
-U0117;Lost Communication With Power Take-Off Control Module
-U0121;Lost Communication With Electronic Brake Control Module
-U0122;Lost Communication With Vehicle Stability Control Module
-U0123;Lost Communication with Yaw Rate Sensor Module
-U0125;Lost Communication With Multi-Axis Acceleration Sensor Module
-U0126;Lost Communication With Steering Wheel Angle Sensor Module
-U0128;Lost Communication With Park Brake Control Module
-U0129;Lost Communication with Brake System Control Module
-U012A;Lost Communication With Chassis Control Module
-U0130;Lost Communication With Power Steering Control Module
-U0131;Lost Communication With Power Steering Control Module
-U0132;Lost Communication With Suspension Control Module
-U0133;Lost Communication With Air Suspension Control Module
-U0134;Lost Communication with Power Steering Control Module - Rear
-U0136;Lost Communication With Differential Control Module - Rear
-U0137;Lost Communication with Trailer Brake Control Module
-U0139;Lost Communication With Suspension Control Module 2
-U0140;Lost Communication With Body Control Module
-U0146;Lost Communication with Serial Data Gateway Module
-U0151;Lost Communication With Inflatable Restraint Sensing and Diagnostic Module
-U0154;Lost Communication with Passenger Presence Module
-U0155;Lost Communication With Instrument Cluster
-U0158;Lost Communication With Head-Up Display
-U0159;Lost Communication With Parking Assist Control Module
-U0160;Lost Communication With Chime Alarm Control Module
-U0164;Lost Communication with HVAC Control Module
-U0166;Lost Communication with Auxiliary Heater Control Module
-U0167;Lost Communication with Immobilizer Control Module
-U0168;Lost Communication With Keyless Entry Control Module
-U016B;Lost Communication with Electric A/C Compressor Control Module
-U0170;Lost Communication with Passenger Presence Detection Sensor Module
-U017E;Lost Communication with Seat Belt Retractor Motor Module
-U0181;Lost Communication with Automatic Headlamp Leveling Control Module
-U0182;Lost Communication With Lighting Control Module - Front
-U0184;Lost Communication With Radio
-U0186;Lost Communication With Speaker Amplifier Module
-U0196;Lost Communication With Rear Audio Control Module
-U0191;Lost Communication With Television
-U0193;Lost Communication With Digital Radio Receiver Control Module
-U0197;Lost Communication With Telephone Control Module
-U0198;Lost Communication with Telematics Communication Interface Control Module
-U019E;Lost Communication With Transmission Range Control Module
-U01A0;Lost Communication with Hybrid/EV Battery Interface Control Module 1
-U01A1;Lost Communication with Hybrid/EV Battery Interface Control Module 2
-U01A2;Lost Communication with Hybrid/EV Battery Interface Control Module 3
-U01A3;Lost Communication with Hybrid/EV Battery Interface Control Module 4
-U01A4;Lost Communication with Hybrid/EV Battery Interface Control Module 5
-U01A5;Lost Communication with Hybrid/EV Battery Interface Control Module 6
-U01A6;Lost Communication with Hybrid/EV Battery Interface Control Module 7
-U01A7;Lost Communication with Hybrid/EV Battery Interface Control Module 8
-U01B0;Lost Communication with Battery Monitor Module
-U01B4;Lost Communication with Brake System Control Module 2
-U0201;Lost Communication with Passenger Door Switch Panel Control Module
-U0203;Lost Communication With Left Rear Door Switch Panel Control Module
-U0204;Lost Communication With Right Rear Door Switch Panel Control Module
-U0207;Lost Communication With Moveable Roof Control Module
-U0208;Lost Communication with Seat Memory Control Module
-U0209;Lost Communication With Front Seat Heating Control Module
-U0210;Lost Communication With Rear Seat Heating Control Module
-U0230;Lost Communication With Liftgate Control Module
-U0231;Lost Communication with Rain Sensor Module
-U0232;Lost Communication with Side Object Detection Control Module - Left
-U0233;Lost Communication with Side Object Detection Control Module - Right
-U0236;Lost Communication With Steering Column Lock Module
-U0237;Lost Communication With Multimedia Player Interface Module
-U023A;"Lost Communication With Vehicle Direction Camera Control Module (without UGN)"
-;Lost Communication With Active Safety Control Module 1 (with UGN)
-U023B;Lost Communication with Active Safety Control Module 2
-U023C;Lost Communication with Night Vision Camera Control Module
-U0241;Lost Communication With Left Headlamp High Beam Control Module
-U0242;Lost Communication With Right Headlamp High Beam Control Module
-U0248;Lost Communication with Remote Accessory Module
-U0249;Lost Communication with Rear Seat Entertainment Control Module
-U0250;Lost Communication with Impact Classification System Module
-U0252;Lost Communication With Trailer Interface Control Module
-U0253;Lost Communication with Accessory Protocol Interface Module
-U0254;Lost Communication With Remote Start Module
-U0255;Lost Communication With Info Display Module
-U0256;Lost Communication With Infotainment Faceplate Control Module
-U0257;"Lost Communication With Info Display Module/Infotainment Faceplate Control Module"
-U0259;Lost Communication with Special Purpose Vehicle Control Module
-U025B;"Lost Communication with Special Purpose Vehicle Control Module ""C"""
-U025C;"Lost Communication with Special Purpose Vehicle Control Module ""D"""
-U0264;Lost Communication With Camera Module - Rear
-U0265;Lost Communication with Left Front Short Range Radar Sensor Module
-U0266;Lost Communication with Night Vision Camera
-U0268;Lost Communication with Right Front Short Range Radar Sensor Module
-U0269;Lost Communication with Front Long Range Object Sensor
-U026A;Lost Communication with Frontview Camera Module
-U026B;Lost Communication with Rear Short Range Object Sensor
-;Lost Communication with Left Rear Short Range Radar Sensor Module
-U026C;Lost Communication with Right Rear Short Range Radar Sensor Module
-U026D;Lost Communication with Rear Middle Short Range Radar Sensor Module
-U0284;Lost Communication with Active Grille Air Shutter 1 Motor Module
-U0285;Lost Communication with Active Grille Air Shutter 2 Motor Module
-U0293;Lost Communication with Hybrid/EV Powertrain Control Module
-U0298;Lost Communication with DC/DC Converter Control Module
-U029D;Lost Communication with NOx Sensor 1 Module
-U029E;Lost Communication with NOx Sensor 2 Module
-U02A3;Lost Communication With Particulate Matter Sensor Module
-U0301;Software Incompatibility with Engine Control Module
-U0302;Software Incompatibility with Transmission Control Module
-U0305;Software Incompatibility With Cruise Control Module
-U0315;Software Incompatibility with Electronic Brake Control Module
-U031C;Software Incompatibility With Brake System Control Module 2
-U0401;Invalid Data Received From Engine Control Module
-U0402;Invalid Data Received From Transmission Control Module
-U0403;Invalid Data Received From Transfer Case Control Module
-U0405;Invalid Data Received From Cruise Control Module
-U0414;Invalid Data Received From Four Wheel Drive Clutch Control Module
-U0415;Invalid Data Received From Electronic Brake Control Module
-U0416;Invalid Data Received From Vehicle Dynamics Control Module
-U0417;Invalid Data Received From Park Brake Control Module
-U0418;Invalid Data Received From Brake System Control Module
-U0420;Invalid Data Received From Power Steering Control Module
-U0421;Invalid Data Received From Suspension Control Module
-U0422;Invalid Data Received From Body Control Module
-U0423;Invalid Data Received From Instrument Cluster
-U0424;Invalid Data Received From HVAC Control Module
-U0428;Invalid Data Received From Steering Wheel Angle Sensor Module
-U042B;Invalid Data Received From Chassis Control Module
-U0431;"Invalid Data Received From Body Control Module ""A"""
-U0432;Invalid Data Received From Multi-axis Acceleration Sensor Module
-U0437;Invalid Data Received From Differential Control Module - Rear
-U0438;Invalid Data Received From Trailer Brake Control Module
-U0447;Invalid Data Received from Central Gateway Module
-U0452;Invalid Data Received From Inflatable Restraint Sensing and Diagnostic Module
-U045A;"Invalid Data Received From Parking Assist Control Module ""A"""
-U0465;Invalid Data Received From Power Take-Off Control Module
-U0499;Invalid Data Received From Telematics Communication Interface Control Module
-U0513;Invalid Data Received From Yaw Rate Sensor Module
-U053B;Invalid Data Received From Active Safety Control Module 1
-U053C;Invalid Data Received From Active Safety Control Module 2
-U056B;Invalid Data Received From Frontview Camera Module
-U0594;Invalid Data Received From Hybrid/EV Powertrain Control Module
-U063E;Lost Communication with Exhaust Heat Exchanger Exhaust Bypass Valve
-U0656;Lost Communication with Turbocharger Boost Control Position Sensor
-U0657;"Lost Communication with Turbocharger/Supercharger Bypass Valve ""A"" Position Sensor"
-U1032;Lost Communication with Vehicle Dynamic Sensor 1
-U1033;Lost Communication with Vehicle Dynamic Sensor 2
-U1067;Lost Communication with Digital Map Control Module
-U1069;Lost Communication with Driver Monitoring System Control Module
-U106A;"Lost Communication with Multifunction Energy Storage Capacitor Control Module"
-U106B;Lost Communication with Multifunction Battery Isolator Control Module
-U1112;Lost Communication with Left Headlamp Leveling Device
-U1113;Lost Communication with Right Headlamp Leveling Device
-U1114;Lost Communication with Left Headlamp Vertical Motor
-U1115;Lost Communication with Right Headlamp Vertical Motor
-U1343;Chassis Control Module LIN Bus 1
-U1345;Engine Control Module LIN Bus 1
-U1347;Engine Control Module LIN Bus 3
-U1359;Lost Communication with Transmission Range Indicator
-U135A;Lost Communication with Shift to Park Range Act
-U135B;Lost Communication with Sunload Sensor
-U135C;Lost Communication with Start-Stop Capacitor Control Module
-U135D;"Lost Communication with Transmission Control Module on Chassis Control
-Module LIN Bus 2"
-U135E;"Lost Communication with Transmission Control Module on Engine Control Module LIN Bus 1"
-U1501;LIN Bus
-U1502;LIN Bus
-U1505;LIN Bus
-U1509;LIN Bus
-;"A26 HVAC Controls / P17 Info Display Module Lost Communication with K33 HVAC Control Module on LIN Bus"
-U150E;LIN Bus
-;"A22 Radio Controls / P17 Info Display Module Lost Communication with A11 Radio on LIN Bus"
-U150F;LIN Bus
-;"A22 Radio Controls / P17 Info Display Module Lost Communication with K74 Human Machine Interface Control Module on LIN Bus"
-;"K161 Vehicle Performance Data Recorder Lost Communication with K74 Human Machine Interface Control Module on LIN Bus"
-U1510;"A11 Radio Lost Communication with A20 Radio/HVAC Control / P17 Info Display Module on LIN Bus"
-;"K9 Body Control Module Lost Communication with B67 Ultrasonic Intrusion Sensor / B165 Content Theft Deterrent Sensor Module on LIN Bus"
-;"K20 Engine Control Module Lost Communication with M96 Active Grille Air Shutter Actuator / M60A Active Grille Air Shutter 1 Motor Module on LIN Bus"
-;"K33 HVAC Control Module Lost Communication with A26 HVAC Controls / A20 Radio/HVAC Controls / P17 Info Display Module on LIN Bus"
-;"K33 HVAC Control Module Lost Communication with A34 HVAC Controls - Auxiliary on LIN Bus"
-;"K39 Liftgate Control Module Lost Communication with K171 Hands-Free Liftgate Sensor Control Module / S45A Liftgate Control Switch - Exterior on LIN Bus"
-;"P16 Instrument Cluster Lost Communication with S70D Steering Wheel Controls Switch - Right Upper / S70R Steering Wheel Controls Switch - Right on LIN Bus"
-U1511;"K20 Engine Control Module Lost Communication with M60B Active Grille Air Shutter 2 Motor Module on LIN Bus"
-;"K26 Headlamp Control Module / K28 Headlamp Leveling Control Module Lost Communication with E13L Headlamp - Left on LIN Bus"
-;"K40 Seat Memory Control Module Lost Communication with K99 Steering Column Position Control Module on LIN Bus"
-;"K183 UHF Short Range Low Energy Remote Control Access Transceiver Lost Communication with B342A UHF Low Energy Remote Control Access Sensor Transceiver 1 on LIN Bus"
-U1512;"K26 Headlamp Control Module / K28 Headlamp Leveling Control Module Lost Communication with E13R Headlamp - Right on LIN Bus"
-;"K124B Active Safety Control Module 2 Lost Communication with K187 Steering Column Friction Control Module on LIN Bus"
-;"K183 UHF Short Range Low Energy Remote Control Access Transceiver Lost Communication with B342B UHF Low Energy Remote Control Access Sensor Transceiver 2 on LIN Bus"
-U1513;"K26 Headlamp Control Module / K28 Headlamp Leveling Control Module Lost Communication with E13L Headlamp - Left on LIN Bus"
-;"K183 UHF Short Range Low Energy Remote Control Access Transceiver Lost Communication with B342C UHF Low Energy Remote Control Access Sensor Transceiver 3 on LIN Bus"
-U1514;"K26 Headlamp Control Module / K28 Headlamp Leveling Control Module Lost Communication with E13R Headlamp - Right on LIN Bus"
-;"K33 HVAC Control Module Lost Communication with A34 HVAC Controls - Auxiliary on LIN Bus"
-;"K183 UHF Short Range Low Energy Remote Control Access Transceiver Lost Communication with B342D UHF Low Energy Remote Control Access Sensor Transceiver 4 on LIN Bus"
-U1515;"K9 Body Control Module Lost Communication with M75 Windshield Wiper Motor / M75L Windshield Wiper Motor Module - Left on LIN Bus"
-;"K183 UHF Short Range Low Energy Remote Control Access Transceiver Lost Communication with B342E UHF Low Energy Remote Control Access Sensor Transceiver 5 on LIN Bus"
-U1516;"K9 Body Control Module Lost Communication with B110 Battery Sensor Module on LIN Bus"
-U1517;"K9 Body Control Module Lost Communication with K62 Sunroof Sunshade Motor Module on LIN Bus"
-U1518;"P16 Instrument Cluster Lost Communication with K78 Head-Up Display Module / P29 Head-Up Display on LIN Bus"
-U1519;"K40 Seat Memory Control Module Lost Communication with S52 Outside Rearview Mirror Switch on LIN Bus"
-;"K40 Seat Memory Control Module Lost Communication with K96 Mirror Control Module / K96D Mirror Control Module - Driver / K96L Mirror Control Module - Left on LIN Bus"
-U151A;"K9 Body Control Module Lost Communication with B117 Rain Sensor / B177 Rain/Ambient Light Sensor Module / B200 Rain Sensor Module on LIN Bus"
-U151B;"K9 Body Control Module Lost Communication with K61 Sunroof Control Module on LIN Bus"
-;"K40 Seat Memory Control Module Lost Communication with S79P Window Switch - Passenger on LIN Bus"
-U151C;"K33 HVAC Control Module Lost Communication with A34 HVAC Controls - Auxiliary / K33A HVAC Control Module - Auxiliary on LIN Bus"
-DTC;DTC Descriptor
-U151F;"A11 Radio Lost Communication with A20 Radio/HVAC Controls / A22 Radio Controls / P17 Info Display Module on LIN Bus"
-U1520;"K9 Body Control Module Lost Communication with P4 Security Siren / P25 Power Sounder Content Theft Deterrent Alarm Module on LIN Bus"
-;"K33 HVAC Control Module Lost Communication with M6CR Air Temperature Door Actuator - Center Console Right Auxiliary on LIN Bus"
-;"K40D Seat Memory Control Module - Driver Lost Communication with K134D Seat Bolster Memory Control Module - Driver on LIN Bus"
-;"K40P Seat Memory Control Module - Passenger Lost Communication with K134P Seat Bolster Memory Control Module - Passenger on LIN Bus"
-U1521;"K9 Body Control Module Lost Communication with S48E Multifunction Switch - Center Console on LIN Bus"
-;"K26 Headlamp Control Module / K28 Headlamp Leveling Control Module Lost Communication with E13L Headlamp - Left on LIN Bus"
-U1522;"K9 Body Control Module Lost Communication with K65 Tire Pressure Indicator Module / B178 Tire Pressure Sensor Locator Module on LIN Bus"
-;"K26 Headlamp Control Module / K28 Headlamp Leveling Control Module Lost Communication with E13R Headlamp - Right on LIN Bus"
-;"K33 HVAC Control Module Lost Communication with M6UR Air Temperature Door Actuator - Right Upper Auxiliary on LIN Bus"
-U1523;"K26 Headlamp Control Module / K28 Headlamp Leveling Control Module Lost Communication with E13L Headlamp - Left on LIN Bus"
-U1524;"K9 Body Control Module Lost Communication with K29 Seat Heating Control Module / K29F Seat Heating Control Module - Front on LIN Bus"
-;"K26 Headlamp Control Module / K28 Headlamp Leveling Control Module Lost Communication with E13R Headlamp - Right on LIN Bus"
-;"K33 HVAC Control Module Lost Communication with K10 Coolant Heater Control Module on LIN Bus"
-U1525;"K33 HVAC Control Module Lost Communication with K10 Coolant Heater Control Module on LIN Bus"
-U1526;"K9 Body Control Module Lost Communication with K29R Seat Heating Control Module - Rear on LIN Bus"
-U1528;"K33 HVAC Control Module Lost Communication with M37B Mode Door Actuator - Auxiliary on LIN Bus"
-;"K40D Seat Memory Control Module - Driver Lost Communication with S64D Seat Adjuster Switch - Driver on LIN Bus"
-;"K40P Seat Memory Control Module - Passenger Lost Communication with S64P Seat Adjuster Switch - Passenger on LIN Bus"
-U152A;"K33 HVAC Control Module Lost Communication with M6UL Air Temperature Door Actuator - Left Upper Auxiliary on LIN Bus"
-U152B;"K33 HVAC Control Module Lost Communication with K32 Steering Wheel Heating Control Module on LIN Bus"
-U152C;"K9 Body Control Module Lost Communication with K18 Compass Module on LIN Bus"
-U152D;"K9 Body Control Module Lost Communication with P2 Transmission Shift Lever Position Indicator on LIN Bus
-K33 HVAC Control Module Lost Communication with V1 Air Ionizer on LIN Bus"
-U1530;"K9 Body Control Module Lost Communication with M35P Window Motor Module - Passenger / M74P Window Motor - Passenger on LIN Bus"
-U1531;"K26 Headlamp Control Module / K28 Headlamp Leveling Control Module Lost Communication with E13LA Headlamp Assembly - Left on LIN Bus"
-U1532;"K26 Headlamp Control Module / K28 Headlamp Leveling Control Module Lost Communication with E13RA Headlamp Assembly - Right on LIN Bus"
-U1534;"K9 Body Control Module Lost Communication with M74D Window Motor - Driver on LIN Bus"
-U1538;"K9 Body Control Module Lost Communication with S79D Window Switch - Driver / S146 Window/Outside Rearview Mirror Switch - Driver on LIN Bus"
-U153A;"K9 Body Control Module Lost Communication with S79P Window Switch - Passenger on LIN Bus"
-U1540;"K9 Body Control Module Lost Communication with M74RR Window Motor - Right Rear on LIN Bus"
-U1544;"K9 Body Control Module Lost Communication with M74LR Window Motor - Left Rear on LIN Bus"
-U1548;"K9 Body Control Module Lost Communication with S79LR Window Switch - Left Rear on LIN Bus"
-U1549;"K9 Body Control Module Lost Communication with M45 Rear Wiper Motor on LIN Bus"
-U154A;"K9 Body Control Module Lost Communication with S79RR Window Switch - Right Rear on LIN Bus"
-U154B;"K9 Body Control Module Lost Communication with K49 Rear Seat Control Module on LIN Bus"
-U1550;"K9 Body Control Module Lost Communication with S31D Seat Heating and Cooling Switch - Driver on LIN Bus"
-U1551;"K9 Body Control Module Lost Communication with K33 HVAC Control Module on LIN Bus"
-U1555;"K9 Body Control Module Lost Communication with S100LR Seat Heating/Venting /Cooling Switch - Left Rear on LIN Bus"
-U1556;"K38 Chassis Control Module Lost Communication with K133 Trailer Brake Power Control Module on LIN Bus"
-U1558;"K9 Body Control Module Lost Communication with S31P Seat Heating and Cooling Switch - Passenger on LIN Bus"
-U1559;"K9 Body Control Module Lost Communication with K183 Short Range Remote Control Transceiver on LIN Bus"
-U155D;"K9 Body Control Module Lost Communication with S100RR Seat Heating/Venting/Cooling Switch - Right Rear on LIN Bus"
-U156D;"K38 Chassis Control Module Lost Communication with S3 Transmission Shift Lever on LIN Bus"
-U15E1;"A11 Radio Lost Communication with A26 HVAC Controls / P17 Info Display Module on LIN Bus"
-U15F0;"K74 Human Machine Interface Control Module Lost Communication with P17 Info Display Module on LIN Bus"
-;"A11 Radio Lost Communication with A20 Radio/HVAC Controls / A22 Radio Controls / P17 Info Display Module on LIN Bus"
-U15F1;"K74 Human Machine Interface Control Module Lost Communication with K188 Human Machine Interface Control Module Bypass Module on LIN Bus"
-U15F3;"K74 Human Machine Interface Control Module Lost Communication with K31 Navigation Control Module on LIN Bus"
-U1653;Chassis Systems High Speed Communication Enable Circuit
-U1725;"Left Headlamp High Beam Control Module Lost Communication with Left Headlamp Low Beam Control Module"
-U1726;"Right Headlamp High Beam Control Module Lost Communication with Right Headlamp Low Beam Control Module"
-U1727;"Right Headlamp High Beam Control Module Lost Communication with Right Headlamp Leveling Actuator"
-U1728;"Left Headlamp High Beam Control Module Lost Communication with Left Headlamp Leveling Actuator"
-U1729;"Right High Beam Control Module Lost Communication with Right Headlamp Horizontal Motor"
-U172A;"Left High Beam Control Module Lost Communication with Left Headlamp Horizontal Motor"
-U1793;"14V Power Module Lost Communication with Hybrid/EV Powertrain Control Module on Powertrain Expansion Communication Bus"
-U1795;14V Power Module Powertrain Expansion Communication Bus Off
-U179A;Lost Communication with Hybrid/EV Powertrain Control Module 2
-U179C;"Lost Communication with One or More Hybrid/EV Battery Interface Control Modules"
-U179D;"Lost Communication with Brake System Control Module 2 on Chassis Expansion Bus"
-U1803;Lost Communication with Hybrid/EV Powertrain Control Module 2
-U1804;Lost Communication with Inside Rearview Mirror Control Module
-U1806;Battery Energy Control Module High Voltage Energy Management CAN Bus Off
-U1807;Battery Charger Control Module High Voltage Energy Management CAN Bus Off
-U180A;Electric A/C Compressor Control Module High Speed CAN Bus Off
-U180B;Battery Energy Control Module High Speed CAN Bus Off
-U180C;Battery Charger Control Module High Speed CAN Bus Off
-U180D;Electronic Brake Control Module Chassis Expansion CAN Bus Off
-U1811;Battery Energy Control Module Powertrain Expansion CAN Bus Off
-U1814;Powertrain Wake-Up Communication Circuit
-U1815;Lost Communication with Drive Motor Control Module 1 on Bus B
-U1816;Lost Communication with Drive Motor Control Module B on Bus B
-U1817;"Lost Communication with Hybrid/EV Powertrain Control Module on Powertrain Expansion CAN Bus"
-U1818;"Lost Communication with Engine Control Module on Powertrain Expansion Communication Bus"
-U1821;"Lost Communication with 14V Power Module on Powertrain Expansion Communication Bus"
-U1826;"Lost Communication with Multi-Axis Acceleration Sensor Module on Powertrain Expansion CAN Bus"
-U1827;"Lost Communication with Steering Angle Sensor Module on Powertrain Expansion CAN Bus"
-U182A;"Hybrid/EV Powertrain Control Module Lost Communication with Battery Energy Control Module on Powertrain Expansion CAN Bus"
-U182D;"Lost Communication with Hybrid/EV Powertrain Control Module 2 on Powertrain Expansion Communication Bus"
-U182E;"Drive Motor Control Module 1 Lost Communication with Hybrid/EV Powertrain Control Module 2 on Powertrain Expansion Communication Bus"
-U182F;"Drive Motor Control Module 2 Lost Communication with Hybrid/EV Powertrain Control Module 2 on Powertrain Expansion Communication Bus"
-U1831;"Drive Motor Control Module 1 Lost Communication with Hybrid/EV Powertrain Control Module on Powertrain Expansion CAN Bus"
-U1833;"Lost Communication with Electronic Brake Control Module on Chassis Expansion CAN Bus"
-U1838;"Lost Communication with Battery Charger Control Module on High Voltage Energy Management CAN Bus"
-U1839;"Auxiliary Transmission Fluid Pump Control Module Lost Communication with Engine Control Module"
-U183A;"Lost Communication with Telematics Communication Interface Control Module on High Speed CAN Bus"
-U183B;"Auxiliary Transmission Fluid Pump Control Module Lost Communication with Transmission Control Module"
-U183C;"Auxiliary Transmission Fluid Pump Control Module Lost Communication with Hybrid/EV Powertrain Control Module 2 on Powertrain Expansion Communication Bus"
-U183E;"Lost Communication with Telematics Communication Interface Control Module on Low Speed CAN Bus"
-U1844;"Battery Energy Control Module Lost Communication with Hybrid/EV Powertrain Control Module on Bus B"
-U1845;"Drive Motor Control Module 1 Lost Communication with Hybrid/EV Powertrain Control Module"
-U1846;"Drive Motor Control Module 2 Lost Communication with Hybrid/EV Powertrain Control Module"
-U2615;"Auxiliary Transmission Fluid Pump Control Module Lost Communication with Hybrid/EV Powertrain Control Module 2"
-U2616;Fuel Pump Driver Control Module Lost Communication with ECM
-U2617;"Battery Energy Control Module Lost Communication with Hybrid/EV Battery Interface Control Module 5"
-U2618;"Battery Energy Control Module Lost Communication with Hybrid/EV Battery Interface Control Module 6"
-U2619;"Battery Energy Control Module Lost Communication with Hybrid/EV Battery Interface Control Module 7"
-U2620;"Battery Energy Control Module Lost Communication with Hybrid/EV Battery Interface Control Module 8"
-U2621;"Battery Energy Control Module Lost Communication with Hybrid/EV Battery Interface Control Module 9"
-U2622;"Battery Energy Control Module Lost Communication with Hybrid/EV Battery Interface Control Module 10"
-U2623;"Battery Energy Control Module Lost Communication with Hybrid/EV Battery Interface Control Module 11"
-U2624;"Battery Energy Control Module Lost Communication with Hybrid/EV Battery Interface Control Module 12"
-U2625;"Battery Energy Control Module Lost Communication with Hybrid/EV Battery Interface Control Module 13"
-U2626;"Reductant Control Module Lost Communication With Engine Control Module on Powertrain Sensor CAN Bus"
-U2627;Reductant Control Module Lost Communication with Reductant Level Sensor
-U2628;"Reductant Control Module Lost Communication with Reductant Concentration Sensor"
-U2629;"Reductant Control Module Lost Communication with Reductant Tank Temperature Sensor 1"
-U2630;"Reductant Control Module Lost Communication with Reductant Tank Temperature Sensor 2"
-U2631;Reductant Control Module Lost Communication with Reductant Pressure Sensor
-U3000;Control Module
-U3001;Control Module Improper Shutdown Performance
-U3012;Control Module Improper Wake-up Perfomance
-DTC P06DA;Engine Oil Pressure Control Solenoid Valve Control Circuit
-DTC P06DC;Engine Oil Pressure Control Solenoid Valve Control Circuit High Voltage
-DTC P06DD;Engine Oil Pressure Control Solenoid Valve Stuck Off
-DTC P06DE;Engine Oil Pressure Control Solenoid Valve Stuck On
-DTC P06DB;Engine Oil Pressure Control Solenoid Valve Control Circuit Low Voltage

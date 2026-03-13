@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<menu
-  xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:icon="@drawable/mode_off_on_24px" android:id="@id/liveButton" android:orderInCategory="100" android:title="Start" app:showAsAction="always" />
-    <item android:icon="@drawable/info_24px" android:id="@id/help" android:title="Open website" />
-    <item android:icon="@drawable/info_24px" android:id="@id/sendLogs" android:title="Report issue / Send Logs" />
-    <item android:icon="@drawable/info_24px" android:id="@id/fb" android:title="Facebook Group" />
-    <item android:icon="@drawable/info_24px" android:id="@id/tg" android:title="Telegram Group" />
-</menu>

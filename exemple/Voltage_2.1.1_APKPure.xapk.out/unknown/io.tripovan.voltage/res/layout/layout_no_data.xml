@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout android:gravity="center" android:orientation="vertical" android:padding="32.0dp" android:layout_width="match_parent" android:layout_height="match_parent"
-  xmlns:android="http://schemas.android.com/apk/res/android">
-    <ImageView android:id="@id/noDataIcon" android:layout_width="80.0dp" android:layout_height="80.0dp" android:layout_marginBottom="16.0dp" android:src="@drawable/volt" android:alpha="0.6" />
-    <TextView android:textSize="16.0sp" android:textColor="?android:textColorSecondary" android:id="@id/noDataText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="There is no data yet" android:lineSpacingExtra="4.0dp" android:textAlignment="center" />
-</LinearLayout>
