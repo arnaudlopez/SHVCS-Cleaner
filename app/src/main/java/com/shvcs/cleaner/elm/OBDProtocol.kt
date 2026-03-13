@@ -67,6 +67,8 @@ object OBDProtocol {
     )
 
     // Phase 3: Configure CAN for HCPM2
+    // NOTE: No ATCAF0 — let ELM327 handle CAN formatting automatically.
+    // DTC Scanner proved HPCM2 works correctly with ATCAF ON (default).
     private val CAN_CONFIG_COMMANDS = listOf(
         "ATWS" to "Warm Start",
         "AT SH 7E4" to "Set Header → HCPM2",
@@ -79,20 +81,19 @@ object OBDProtocol {
         "ATE0" to "Echo OFF",
         "ATS0" to "Spaces OFF",
         "ATH0" to "Headers OFF",
-        "ATCAF0" to "CAN Auto-Formatting OFF",
     )
 
-    // Phase 4: Seed request
-    private const val SEED_COMMAND = "022701"
-    private const val SEED_RESPONSE_MARKER = "046701"
+    // Phase 4: Seed request (no PCI byte — ATCAF ON handles it)
+    private const val SEED_COMMAND = "2701"
+    private const val SEED_RESPONSE_MARKER = "6701"
 
-    // Phase 4b: Key submission
-    private const val KEY_COMMAND_PREFIX = "042702"
-    private const val UNLOCK_SUCCESS_MARKER = "026702"
+    // Phase 4b: Key submission (no PCI byte)
+    private const val KEY_COMMAND_PREFIX = "2702"
+    private const val UNLOCK_SUCCESS_MARKER = "6702"
 
-    // Phase 5: Clear SHVCS error
-    private const val CLEAR_COMMAND = "07AEFC0200004600"
-    private const val CLEAR_SUCCESS_MARKER = "02eefc"
+    // Phase 5: Clear SHVCS error (no PCI byte — same as DTC Scanner)
+    private const val CLEAR_COMMAND = "AEFC0200004600"
+    private const val CLEAR_SUCCESS_MARKER = "eefc"
 
     /** Max auto-retries on NRC 0x37 (time delay) for seed request. */
     private const val MAX_TIME_DELAY_RETRIES = 3
