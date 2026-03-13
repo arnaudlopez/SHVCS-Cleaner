@@ -13,4 +13,7 @@ local.properties
 *.apk
 *.aab
 *.jks
+*.jks
 *.keystore
+*.pcap
+exemple/

@@ -13,6 +13,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -56,7 +57,11 @@ import kotlin.math.sin
 import com.shvcs.cleaner.ui.DashboardTab
 import com.shvcs.cleaner.ui.CellVoltagesTab
 import com.shvcs.cleaner.ui.LiveMonitorTab
+import com.shvcs.cleaner.ui.HistoryTab
+import com.shvcs.cleaner.ui.HealthReportTab
+import com.shvcs.cleaner.ui.CompareTab
 import com.shvcs.cleaner.elm.BatteryDataParser
+import com.shvcs.cleaner.data.ScanResult
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -97,7 +102,12 @@ class MainActivity : ComponentActivity() {
                         onScanBattery = { viewModel.scanBattery() },
                         onSelectTab = { viewModel.selectTab(it) },
                         onStartLive = { viewModel.startLiveMonitoring() },
-                        onStopLive = { viewModel.stopLiveMonitoring() }
+                        onStopLive = { viewModel.stopLiveMonitoring() },
+                        onDeleteScan = { viewModel.deleteScan(it) },
+                        onDeleteAllScans = { viewModel.deleteAllScans() },
+                        onSelectScan = {}, // tap on history item — could show detail
+                        onSelectCompareScanA = { viewModel.selectCompareScanA(it) },
+                        onSelectCompareScanB = { viewModel.selectCompareScanB(it) }
                     )
                 }
             }
@@ -126,7 +136,12 @@ fun MainScreen(
     onScanBattery: () -> Unit,
     onSelectTab: (Int) -> Unit,
     onStartLive: () -> Unit,
-    onStopLive: () -> Unit
+    onStopLive: () -> Unit,
+    onDeleteScan: (ScanResult) -> Unit,
+    onDeleteAllScans: () -> Unit,
+    onSelectScan: (ScanResult) -> Unit,
+    onSelectCompareScanA: (ScanResult) -> Unit,
+    onSelectCompareScanB: (ScanResult) -> Unit
 ) {
     // Show key input dialog when awaiting key
     if (state.connectionState == ConnectionState.AWAITING_KEY) {
@@ -141,7 +156,7 @@ fun MainScreen(
         )
     }
 
-    val tabLabels = listOf("⚡ Battery", "🔋 Cells", "📊 Live", "⚠ DTCs", "⌨ Console", "🔧 SHVCS")
+    val tabLabels = listOf("⚡ Battery", "🔋 Cells", "📊 Live", "📋 History", "🏥 Health", "🔀 Compare", "⚠ DTCs", "⌨ Console", "🔧 SHVCS")
 
     Column(
         modifier = Modifier
@@ -186,6 +201,29 @@ fun MainScreen(
                     )
                 }
                 3 -> {
+                    // History tab
+                    HistoryTab(
+                        scans = state.scanHistory,
+                        onSelectScan = onSelectScan,
+                        onDeleteScan = onDeleteScan,
+                        onDeleteAll = onDeleteAllScans
+                    )
+                }
+                4 -> {
+                    // Health Report tab
+                    HealthReportTab(scans = state.scanHistory)
+                }
+                5 -> {
+                    // Compare tab
+                    CompareTab(
+                        scans = state.scanHistory,
+                        selectedScanA = state.compareScanA,
+                        selectedScanB = state.compareScanB,
+                        onSelectA = onSelectCompareScanA,
+                        onSelectB = onSelectCompareScanB
+                    )
+                }
+                6 -> {
                     // DTCs tab
                     Column(
                         modifier = Modifier
@@ -203,7 +241,7 @@ fun MainScreen(
                         Spacer(Modifier.height(4.dp))
                     }
                 }
-                4 -> {
+                7 -> {
                     // Console tab
                     Column(
                         modifier = Modifier
@@ -226,7 +264,7 @@ fun MainScreen(
                         Spacer(Modifier.height(4.dp))
                     }
                 }
-                5 -> {
+                8 -> {
                     // SHVCS Clear tab
                     Column(
                         modifier = Modifier
@@ -276,26 +314,35 @@ fun MainScreen(
             }
         }
 
-        // ── Bottom Navigation ──
-        NavigationBar(
-            containerColor = RacingDarkGray,
-            contentColor = RacingWhite,
-            tonalElevation = 0.dp
+        // ── Bottom Navigation (scrollable for 9 tabs) ──
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(RacingDarkGray)
+                .horizontalScroll(rememberScrollState())
+                .padding(vertical = 6.dp, horizontal = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             tabLabels.forEachIndexed { index, label ->
-                NavigationBarItem(
-                    selected = state.selectedTab == index,
-                    onClick = { onSelectTab(index) },
-                    label = { Text(label, fontSize = 10.sp, maxLines = 1) },
-                    icon = {},
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = RacingBlue,
-                        selectedTextColor = RacingBlue,
-                        unselectedIconColor = RacingDimGray,
-                        unselectedTextColor = RacingDimGray,
-                        indicatorColor = RacingBlue.copy(alpha = 0.15f)
+                val selected = state.selectedTab == index
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(
+                            if (selected) RacingBlue.copy(alpha = 0.15f)
+                            else Color.Transparent
+                        )
+                        .clickable { onSelectTab(index) }
+                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                ) {
+                    Text(
+                        label,
+                        fontSize = 10.sp,
+                        maxLines = 1,
+                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                        color = if (selected) RacingBlue else RacingDimGray
                     )
-                )
+                }
             }
         }
     }

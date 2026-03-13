@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -57,6 +58,15 @@ dependencies {
 
     // Google Fonts for Compose
     implementation("androidx.compose.ui:ui-text-google-fonts")
+
+    // Room (database)
+    val roomVersion = "2.6.1"
+    implementation("androidx.room:room-runtime:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion")
+    ksp("androidx.room:room-compiler:$roomVersion")
+
+    // Gson (JSON serialization for Room type converters)
+    implementation("com.google.code.gson:gson:2.10.1")
 
     // Debug
     debugImplementation("androidx.compose.ui:ui-tooling")

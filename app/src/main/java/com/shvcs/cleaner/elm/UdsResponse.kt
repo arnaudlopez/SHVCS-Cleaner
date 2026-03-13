@@ -8,7 +8,7 @@ sealed class UdsResponse {
 
     /**
      * Positive response — the ECU accepted the request.
-     * Format: [SID+0x40][data...]
+     * Format: SID+0x40, data...
      * Example: 6701ABCD (positive response to SecurityAccess seed request 2701)
      */
     data class Positive(

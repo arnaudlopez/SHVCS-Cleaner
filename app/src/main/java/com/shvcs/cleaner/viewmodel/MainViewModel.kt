@@ -12,6 +12,8 @@ import com.shvcs.cleaner.elm.SeedKeyGenerator
 import com.shvcs.cleaner.elm.BatteryDataParser
 import com.shvcs.cleaner.elm.BatteryScanner
 import com.shvcs.cleaner.elm.LiveMonitor
+import com.shvcs.cleaner.data.ScanResult
+import com.shvcs.cleaner.data.ScanResultDatabase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -63,7 +65,13 @@ data class AppState(
     val isMonitoring: Boolean = false,
     /** Live monitoring data history (for charts) */
     val liveHistory: List<LiveMonitor.LiveDataPoint> = emptyList(),
-    /** Currently selected navigation tab (0=Dashboard, 1=Cells, 2=Live, 3=DTCs, 4=Console, 5=SHVCS) */
+    /** Persisted scan history from Room DB */
+    val scanHistory: List<ScanResult> = emptyList(),
+    /** Compare tab: selected scan A */
+    val compareScanA: ScanResult? = null,
+    /** Compare tab: selected scan B */
+    val compareScanB: ScanResult? = null,
+    /** Currently selected navigation tab */
     val selectedTab: Int = 0,
 )
 
@@ -73,6 +81,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _state = MutableStateFlow(AppState())
     val state: StateFlow<AppState> = _state.asStateFlow()
     private var liveJob: Job? = null
+    private val db = ScanResultDatabase.getInstance(application)
 
     private val prefs = application.getSharedPreferences("shvcs_settings", Context.MODE_PRIVATE)
 
@@ -84,6 +93,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             savedKeys = loadSavedKeys(),
             seedKeyMap = loadSeedKeyMap()
         )
+        // Collect scan history from Room
+        viewModelScope.launch {
+            db.scanResultDao().getAllDesc().collect { scans ->
+                _state.value = _state.value.copy(scanHistory = scans)
+            }
+        }
     }
 
     fun saveSettings(ip: String, port: Int) {
@@ -393,10 +408,59 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
             BatteryScanner.scanBattery(elm, batteryListener)
 
+            // Auto-save scan result to Room DB
+            val bd = _state.value.batteryData
+            if (bd != null) {
+                val scanResult = ScanResult(
+                    socDisplayed = bd.socDisplayed,
+                    socRaw = bd.socRaw,
+                    evRange = bd.evRange,
+                    hvVoltage = bd.hvVoltage,
+                    hvAmperage = bd.hvAmperage,
+                    hvPower = bd.hvPower,
+                    batteryTemp = bd.batteryTemp,
+                    ambientTemp = bd.ambientTemp,
+                    capacity = bd.capacityAh,
+                    isolation = bd.isolationKohm,
+                    cellDelta = bd.cellDelta,
+                    chargerAcPower = bd.chargerAcPower,
+                    chargerHvPower = bd.chargerHvPower,
+                    cellVoltages = bd.cellVoltages,
+                    heaterOn = bd.activeHeating,
+                    coolingOn = bd.activeCooling,
+                    heaterPower = bd.batteryHeaterPower,
+                    voltage12v = _state.value.voltage
+                )
+                db.scanResultDao().insert(scanResult)
+                _state.value = _state.value.copy(
+                    logs = _state.value.logs + "✓ Scan saved to history"
+                )
+            }
+
             _state.value = _state.value.copy(
                 isBatteryScanLoading = false,
                 progressStep = if (_state.value.batteryData != null) "Battery scan complete" else "Battery scan failed"
             )
+        }
+    }
+
+    fun selectCompareScanA(scan: ScanResult) {
+        _state.value = _state.value.copy(compareScanA = scan)
+    }
+
+    fun selectCompareScanB(scan: ScanResult) {
+        _state.value = _state.value.copy(compareScanB = scan)
+    }
+
+    fun deleteScan(scan: ScanResult) {
+        viewModelScope.launch {
+            db.scanResultDao().delete(scan)
+        }
+    }
+
+    fun deleteAllScans() {
+        viewModelScope.launch {
+            db.scanResultDao().deleteAll()
         }
     }
 
