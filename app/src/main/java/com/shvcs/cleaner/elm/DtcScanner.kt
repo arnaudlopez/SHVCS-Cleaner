@@ -223,10 +223,26 @@ object DtcScanner {
     }
 
     /**
+     * Modules that require UDS Security Access (2701/2702) before DTC clearing.
+     * Based on Voltage app's method U0: HPCM2 (7E4) requires seed/key.
+     * BECM modules (24C, 24B) may also require it.
+     */
+    private val MODULES_REQUIRING_SECURITY = setOf("7E4", "24C", "24B")
+
+    /**
      * Clear DTCs on a specific module using UDS Service 14.
      *
+     * For modules requiring security access (HPCM2, BECM):
+     *   1. ATSH xxx          ← set header to target module  
+     *   2. 2701              ← request seed
+     *   3. 2702 + [key]      ← send computed key
+     *   4. 14FFFFFF          ← clear DTCs (now authorized)
+     *
+     * For non-secured modules (ECM, TCM, ABS, BCM):
+     *   1. ATSH xxx          ← set header to target module
+     *   2. 14FFFFFF          ← clear DTCs directly
+     *
      * @param moduleId CAN request ID (e.g. "7E4")
-     * @param requiresSecurityAccess whether this module needs seed/key before clear
      * @return true if clear was successful
      */
     suspend fun clearModuleDtcs(
@@ -250,7 +266,20 @@ object DtcScanner {
             }
             kotlinx.coroutines.delay(100)
 
-            // Send clear command
+            // ── Security Access if required ──
+            if (moduleId.uppercase() in MODULES_REQUIRING_SECURITY) {
+                listener.onLog("")
+                listener.onLog("── Security Access Required ──")
+                
+                val authenticated = performSecurityAccess(elm, listener)
+                if (!authenticated) {
+                    listener.onError("Security access failed for $moduleName — cannot clear DTCs")
+                    return false
+                }
+                listener.onLog("  ✓ Authenticated — proceeding to clear")
+            }
+
+            // ── Send clear command ──
             listener.onLog("► $UDS_CLEAR_DTC (Clear All DTCs)")
             val result = elm.sendCommand(UDS_CLEAR_DTC, timeoutMs = 8000L)
 
@@ -266,13 +295,16 @@ object DtcScanner {
                     clean.contains("7f14") -> {
                         // Negative response — check sub-function
                         if (clean.contains("7f1433")) {
-                            listener.onLog("  ✗ Security access required — use SHVCS clear flow")
-                            listener.onError("Security access required for $moduleName")
+                            listener.onLog("  ✗ Security access required but authentication failed")
+                            listener.onError("Security access denied on $moduleName")
                         } else if (clean.contains("7f1431")) {
                             listener.onLog("  ✗ Request out of range")
                             listener.onError("Clear not supported on $moduleName")
+                        } else if (clean.contains("7f1422")) {
+                            listener.onLog("  ✗ Conditions not correct (vehicle may need to be in specific state)")
+                            listener.onError("Conditions not met for $moduleName")
                         } else {
-                            listener.onLog("  ✗ Clear rejected by ECU")
+                            listener.onLog("  ✗ Clear rejected by ECU (NRC: ${clean.substringAfter("7f14").take(2)})")
                             listener.onError("Clear rejected on $moduleName")
                         }
                         return false
@@ -282,7 +314,7 @@ object DtcScanner {
                         return false
                     }
                     else -> {
-                        // Try Mode 04 as fallback
+                        // Try Mode 04 as fallback for non-UDS modules
                         listener.onLog("  ⚠ Unexpected response, trying OBD-II Mode 04...")
                         return tryGenericClear(elm, listener)
                     }
@@ -295,6 +327,158 @@ object DtcScanner {
         } catch (e: Exception) {
             listener.onError("Clear error: ${e.message}")
         }
+        return false
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Security Access sub-sequence (2701 → 2702)
+    // ─────────────────────────────────────────────────────────────
+
+    /** Max retries for seed request on NRC 0x37 (time delay). */
+    private const val SEED_MAX_RETRIES = 3
+    /** Delay between seed retries (ms). */
+    private const val SEED_RETRY_DELAY_MS = 10_000L
+
+    /**
+     * Perform the full UDS Security Access handshake on the currently selected module.
+     * Prerequisite: ATSH already set to the target module.
+     *
+     * Sequence:
+     *   1. Send 2701 (Request Seed Level 1)
+     *   2. Receive 6701 + 4-byte seed  
+     *   3. Look up key via SeedKeyGenerator.generateKey(seed)
+     *   4. Send 2702 + key (4 chars)
+     *   5. Receive 6702 = success
+     *
+     * @return true if security access was granted
+     */
+    private suspend fun performSecurityAccess(
+        elm: ElmWifiManager,
+        listener: Listener
+    ): Boolean {
+        // ── Step 1: Request Seed with retry on NRC 0x37 ──
+        var extractedSeed: String? = null
+
+        for (attempt in 0..SEED_MAX_RETRIES) {
+            if (attempt > 0) {
+                listener.onLog("  ⏳ Retry $attempt/$SEED_MAX_RETRIES — waiting ${SEED_RETRY_DELAY_MS / 1000}s...")
+                kotlinx.coroutines.delay(SEED_RETRY_DELAY_MS)
+            }
+
+            listener.onLog("► 2701 (Request Seed)")
+            val seedResult = elm.sendCommand("2701", timeoutMs = 5000L)
+
+            seedResult.onSuccess { response ->
+                val clean = response.replace(" ", "").replace("\r", "").replace("\n", "").lowercase()
+                listener.onLog("  ◄ ${response.trim()}")
+
+                when {
+                    // Positive: 6701 + 4-byte seed (8 hex chars → we want first 4 = first 2 bytes)
+                    clean.contains("6701") -> {
+                        val seedIdx = clean.indexOf("6701")
+                        // Seed is typically 2 bytes (4 hex chars) after "6701" 
+                        // but our system uses the marker "046701" with seed at offset +6
+                        val markerLen = if (clean.contains("046701")) {
+                            clean.indexOf("046701") + 10  // 046701 = 6 chars, seed = 4 chars  
+                        } else {
+                            seedIdx + 8 // 6701 = 4 chars, seed = 4 chars
+                        }
+                        
+                        val seedStart = if (clean.contains("046701")) {
+                            clean.indexOf("046701") + 6
+                        } else {
+                            seedIdx + 4
+                        }
+                        
+                        if (seedStart + 4 <= clean.length) {
+                            extractedSeed = clean.substring(seedStart, seedStart + 4).uppercase()
+                            listener.onLog("  ✓ Seed received: $extractedSeed")
+                        } else {
+                            listener.onLog("  ⚠ Seed response too short")
+                        }
+                        return@onSuccess
+                    }
+                    // NRC 0x37: time delay, retry
+                    clean.contains("7f2737") -> {
+                        listener.onLog("  ⚠ Time delay — ECU needs more time")
+                        if (attempt >= SEED_MAX_RETRIES) {
+                            listener.onLog("  ✗ Max retries exhausted")
+                        }
+                        return@onSuccess
+                    }
+                    // NRC 0x36: max attempts, ECU locked
+                    clean.contains("7f2736") -> {
+                        listener.onLog("  ✗ ECU locked — too many attempts, power cycle needed")
+                        return false
+                    }
+                    // NRC 0x78: response pending
+                    clean.contains("7f2778") -> {
+                        listener.onLog("  ⏳ Response pending, waiting...")
+                        kotlinx.coroutines.delay(3000)
+                        return@onSuccess
+                    }
+                    else -> {
+                        listener.onLog("  ⚠ Unexpected seed response: $clean")
+                    }
+                }
+            }.onFailure { e ->
+                listener.onLog("  ✗ Seed request error: ${e.message}")
+                return false
+            }
+
+            if (extractedSeed != null) break
+        }
+
+        if (extractedSeed == null) {
+            listener.onLog("  ✗ Could not obtain seed from ECU")
+            return false
+        }
+
+        // ── Step 2: Compute key ──
+        val key = SeedKeyGenerator.generateKey(extractedSeed!!)
+        if (key == null) {
+            listener.onLog("  ✗ No key found for seed $extractedSeed — cannot authenticate")
+            listener.onError("No key available for seed $extractedSeed")
+            return false
+        }
+        listener.onLog("  ✓ Key computed: $key (from seed $extractedSeed)")
+
+        // ── Step 3: Submit key ──
+        val keyCommand = "042702$key"
+        listener.onLog("► $keyCommand (Submit Key)")
+        val keyResult = elm.sendCommand(keyCommand, timeoutMs = 5000L)
+
+        keyResult.onSuccess { response ->
+            val clean = response.replace(" ", "").replace("\r", "").replace("\n", "").lowercase()
+            listener.onLog("  ◄ ${response.trim()}")
+
+            when {
+                clean.contains("6702") -> {
+                    listener.onLog("  ✓ Security access granted!")
+                    return true
+                }
+                clean.contains("7f2735") -> {
+                    listener.onLog("  ✗ Invalid key — rejected by ECU")
+                    return false
+                }
+                clean.contains("7f2736") -> {
+                    listener.onLog("  ✗ ECU locked after invalid key")
+                    return false
+                }
+                clean.contains("7f2737") -> {
+                    listener.onLog("  ✗ Time delay after key submission")
+                    return false
+                }
+                else -> {
+                    listener.onLog("  ✗ Key submission failed: $clean")
+                    return false
+                }
+            }
+        }.onFailure { e ->
+            listener.onLog("  ✗ Key submission error: ${e.message}")
+            return false
+        }
+
         return false
     }
 
