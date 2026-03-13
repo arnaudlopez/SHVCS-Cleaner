@@ -7,10 +7,10 @@ import com.shvcs.cleaner.elm.BatteryDataParser.Pids
  *
  * Scan sequence (from Voltage W3/l.smali):
  * 1. Configure HPCM2 CAN header (ATSH7E4)
- * 2. Read SOC + Range (PID 1A90)
- * 3. Read Battery pack data (PID 1AB0)
- * 4. Read BECM info (PID 1AB4)
- * 5. Read Charger data (PID 1AA3)
+ * 2. Read SOC + Range (PID 224190)
+ * 3. Read HV Battery (PID 2241B0)
+ * 4. Read BECM Info (PID 2241B4)
+ * 5. Read Charger Data 1 (PID 2241A3)
  * 6. Read Cell voltages (PID 1ADF) — multi-frame
  * 7. Merge all results into BatteryData
  */
@@ -95,6 +95,39 @@ object BatteryScanner {
     }
 
     /**
+     * Helper function to send a command, log it, and handle retries/errors.
+     * This is a new helper function introduced by the change.
+     */
+    private suspend fun sendCommandWithFormatAndRetry(
+        elm: ElmWifiManager,
+        listener: Listener,
+        pid: String,
+        description: String = pid,
+        timeoutMs: Long = 5000L,
+        retries: Int = 1
+    ): String? {
+        var attempt = 0
+        while (attempt <= retries) {
+            listener.onLog("► $pid ($description) - Attempt ${attempt + 1}")
+            val result = elm.sendCommand(pid, timeoutMs = timeoutMs)
+            result.onSuccess { resp ->
+                val trimmed = resp.trim()
+                listener.onLog("  ◄ $trimmed")
+                if (trimmed.uppercase().contains("NO DATA") || trimmed.uppercase().contains("ERROR")) {
+                    listener.onLog("  ⚠ No data for $description")
+                } else {
+                    return trimmed
+                }
+            }.onFailure { e ->
+                listener.onLog("  ✗ Error: ${e.message}")
+            }
+            kotlinx.coroutines.delay(200)
+            attempt++
+        }
+        return null
+    }
+
+    /**
      * Execute a full battery scan.
      *
      * Configures ELM for HPCM2, reads all battery PIDs, and returns
@@ -102,6 +135,7 @@ object BatteryScanner {
      */
     suspend fun scanBattery(elm: ElmWifiManager, listener: Listener): BatteryDataParser.BatteryData? {
         var step = 0
+        var data = BatteryDataParser.BatteryData()
 
         try {
             // ── Step 1: Configure ELM for HPCM2 ──
@@ -118,53 +152,79 @@ object BatteryScanner {
             step++
             listener.onProgress(step, TOTAL_SCAN_STEPS, "Reading 12V battery...")
             val voltage12v = requestPid(elm, "ATRV", "12V Battery Voltage", listener)
+            data = data.copy(voltage12v = voltage12v)
 
-            // ── Step 3: Read SOC + Range (1A90) ──
+            // ── Step 3: Read SOC + Range (224190) ──
             step++
             listener.onProgress(step, TOTAL_SCAN_STEPS, "Reading SOC & EV Range...")
-            val socResponse = requestPid(elm, Pids.HPCM2_SOC_RANGE, "SOC + EV Range", listener)
-            val socData = socResponse?.let { BatteryDataParser.parseSocRange(it) }
-
-            if (socData != null) {
-                listener.onLog("  ✓ SOC: ${socData.socDisplayed?.let { "%.1f".format(it) } ?: "?"}% | " +
-                    "Raw: ${socData.socRaw?.let { "%.1f".format(it) } ?: "?"}% | " +
-                    "Range: ${socData.evRange?.let { "%.0f".format(it) } ?: "?"} km")
+            val socResult = sendCommandWithFormatAndRetry(elm, listener, Pids.HPCM2_SOC_RANGE, "SOC + EV Range")
+            socResult?.let { BatteryDataParser.parseSocRange(it) }?.let {
+                data = data.copy(
+                    socDisplayed = it.socDisplayed,
+                    socRaw = it.socRaw,
+                    evRange = it.evRange
+                )
             }
 
-            // ── Step 4: Read Battery Pack (1AB0) ──
+            if (data.socDisplayed != null || data.socRaw != null || data.evRange != null) {
+                listener.onLog("  ✓ SOC: ${data.socDisplayed?.let { "%.1f".format(it) } ?: "?"}% | " +
+                    "Raw: ${data.socRaw?.let { "%.1f".format(it) } ?: "?"}% | " +
+                    "Range: ${data.evRange?.let { "%.0f".format(it) } ?: "?"} km")
+            }
+
+            // ── Step 4: Read HV Battery Pack (2241B0) ──
             step++
             listener.onProgress(step, TOTAL_SCAN_STEPS, "Reading HV battery pack...")
-            val batResponse = requestPid(elm, Pids.HPCM2_BATTERY, "HV Battery Pack", listener)
-            val batData = batResponse?.let { BatteryDataParser.parseBatteryPack(it) }
-
-            if (batData != null) {
-                listener.onLog("  ✓ HV: ${batData.hvVoltage?.let { "%.1f".format(it) } ?: "?"}V | " +
-                    "${batData.hvAmperage?.let { "%.1f".format(it) } ?: "?"}A | " +
-                    "${batData.hvPower?.let { "%.1f".format(it) } ?: "?"} kW | " +
-                    "Temp: ${batData.batteryTemp?.let { "%.0f".format(it) } ?: "?"}°C")
+            val packResult = sendCommandWithFormatAndRetry(elm, listener, Pids.HPCM2_BATTERY, "HV Battery Pack")
+            packResult?.let { BatteryDataParser.parseBatteryPack(it) }?.let {
+                data = data.copy(
+                    hvVoltage = it.hvVoltage,
+                    hvAmperage = it.hvAmperage,
+                    hvPower = it.hvPower,
+                    batteryTemp = it.batteryTemp
+                )
             }
 
-            // ── Step 5: Read BECM Info (1AB4) ──
+            if (data.hvVoltage != null || data.hvAmperage != null || data.hvPower != null || data.batteryTemp != null) {
+                listener.onLog("  ✓ HV: ${data.hvVoltage?.let { "%.1f".format(it) } ?: "?"}V | " +
+                    "${data.hvAmperage?.let { "%.1f".format(it) } ?: "?"}A | " +
+                    "${data.hvPower?.let { "%.1f".format(it) } ?: "?"} kW | " +
+                    "Temp: ${data.batteryTemp?.let { "%.0f".format(it) } ?: "?"}°C")
+            }
+
+            // ── Step 5: Read BECM Info (2241B4) ──
             step++
             listener.onProgress(step, TOTAL_SCAN_STEPS, "Reading BECM info...")
-            val becmResponse = requestPid(elm, Pids.HPCM2_BECM_INFO, "BECM Info", listener)
-            val becmData = becmResponse?.let { BatteryDataParser.parseBecmInfo(it) }
-
-            if (becmData != null) {
-                listener.onLog("  ✓ Capacity: ${becmData.capacityAh?.let { "%.1f".format(it) } ?: "?"} Ah | " +
-                    "Isolation: ${becmData.isolationKohm?.let { "%.0f".format(it) } ?: "?"} kΩ | " +
-                    "Heating: ${becmData.activeHeating} | Cooling: ${becmData.activeCooling}")
+            val becmResult = sendCommandWithFormatAndRetry(elm, listener, Pids.HPCM2_BECM_INFO, "BECM Info")
+            becmResult?.let { BatteryDataParser.parseBecmInfo(it) }?.let {
+                data = data.copy(
+                    capacityAh = it.capacityAh,
+                    isolationKohm = it.isolationKohm,
+                    activeHeating = it.activeHeating,
+                    activeCooling = it.activeCooling
+                )
             }
 
-            // ── Step 6: Read Charger Data (1AA3) ──
+            if (data.capacityAh != null || data.isolationKohm != null || data.activeHeating || data.activeCooling) {
+                listener.onLog("  ✓ Capacity: ${data.capacityAh?.let { "%.1f".format(it) } ?: "?"} Ah | " +
+                    "Isolation: ${data.isolationKohm?.let { "%.0f".format(it) } ?: "?"} kΩ | " +
+                    "Heating: ${data.activeHeating} | Cooling: ${data.activeCooling}")
+            }
+
+            // ── Step 6: Read Charger Data (2241A3) ──
             step++
             listener.onProgress(step, TOTAL_SCAN_STEPS, "Reading charger data...")
-            val chgResponse = requestPid(elm, Pids.HPCM2_CHARGER_1, "Charger Data", listener)
-            val chgData = chgResponse?.let { BatteryDataParser.parseCharger1(it) }
+            val chargerResult = sendCommandWithFormatAndRetry(elm, listener, Pids.HPCM2_CHARGER_1, "Charger Data")
+            chargerResult?.let { BatteryDataParser.parseCharger1(it) }?.let {
+                data = data.copy(
+                    chargerAcPower = it.chargerAcPower,
+                    chargerHvPower = it.chargerHvPower
+                )
+            }
 
-            if (chgData != null) {
-                listener.onLog("  ✓ AC Power: ${chgData.chargerAcPower?.let { "%.1f".format(it) } ?: "?"} kW | " +
-                    "HV Power: ${chgData.chargerHvPower?.let { "%.1f".format(it) } ?: "?"} kW")
+            if (data.chargerAcPower != null || data.chargerHvPower != null) {
+                listener.onLog("  ✓ AC Power: ${data.chargerAcPower?.let { "%.1f".format(it) } ?: "?"} kW | " +
+                    "HV Power: ${data.chargerHvPower?.let { "%.1f".format(it) } ?: "?"} kW")
             }
 
             // ── Step 7: Read Cell Voltages (1ADF) ──
@@ -174,15 +234,23 @@ object BatteryScanner {
             listener.onLog("═══ CELL VOLTAGE SCAN ═══")
 
             // Cell voltages may be multi-frame, request with longer timeout
-            val cellResponse = requestPid(elm, Pids.HPCM2_CELLS, "Cell Voltages", listener, timeoutMs = 15000L)
-            val cellData = cellResponse?.let { BatteryDataParser.parseCellVoltages(it) }
+            val cellResponse = sendCommandWithFormatAndRetry(elm, listener, Pids.HPCM2_CELLS, "Cell Voltages", timeoutMs = 15000L)
+            cellResponse?.let { BatteryDataParser.parseCellVoltages(it) }?.let {
+                data = data.copy(
+                    cellVoltages = it.cellVoltages,
+                    cellMin = it.cellMin,
+                    cellMax = it.cellMax,
+                    cellAvg = it.cellAvg,
+                    cellDelta = it.cellDelta
+                )
+            }
 
-            if (cellData != null && cellData.cellVoltages.isNotEmpty()) {
-                listener.onLog("  ✓ ${cellData.cellVoltages.size} cells scanned")
-                listener.onLog("    Min: ${"%.3f".format(cellData.cellMin)}V | " +
-                    "Max: ${"%.3f".format(cellData.cellMax)}V | " +
-                    "Avg: ${"%.3f".format(cellData.cellAvg)}V | " +
-                    "Delta: ${"%.1f".format(cellData.cellDelta)} mV")
+            if (data.cellVoltages.isNotEmpty()) {
+                listener.onLog("  ✓ ${data.cellVoltages.size} cells scanned")
+                listener.onLog("    Min: ${"%.3f".format(data.cellMin)}V | " +
+                    "Max: ${"%.3f".format(data.cellMax)}V | " +
+                    "Avg: ${"%.3f".format(data.cellAvg)}V | " +
+                    "Delta: ${"%.1f".format(data.cellDelta)} mV")
             } else {
                 listener.onLog("  ⚠ No cell voltage data received")
             }
@@ -191,14 +259,7 @@ object BatteryScanner {
             step++
             listener.onProgress(step, TOTAL_SCAN_STEPS, "Scan complete!")
 
-            val merged = BatteryDataParser.merge(
-                BatteryDataParser.BatteryData(voltage12v = voltage12v),
-                socData,
-                batData,
-                becmData,
-                chgData,
-                cellData
-            ).copy(isComplete = true)
+            val merged = data.copy(isComplete = true)
 
             listener.onLog("")
             listener.onLog("✅ Battery scan complete!")

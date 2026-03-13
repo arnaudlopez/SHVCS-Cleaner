@@ -83,20 +83,22 @@ object BatteryDataParser {
      */
     object Pids {
         // Request → Expected response prefix
-        const val HPCM2_SOC_RANGE   = "1A90"  // SOC Displayed, SOC Raw, EV Range
-        const val HPCM2_SOC_RANGE_R = "5A90"
+        const val HPCM2_SOC_RANGE   = "224190"  // SOC Displayed, SOC Raw, EV Range
+        const val HPCM2_SOC_RANGE_R = "624190"
 
-        const val HPCM2_CHARGER_1   = "1AA3"  // Charger data set 1
-        const val HPCM2_CHARGER_1_R = "5AA3"
+        const val HPCM2_CHARGER_1   = "2241A3"  // Charger data set 1
+        const val HPCM2_CHARGER_1_R = "6241A3"
 
-        const val HPCM2_CHARGER_2   = "1AA5"  // Charger data set 2 (preceded by 2701 security check)
-        const val HPCM2_CHARGER_2_R = "5AA5"
+        const val HPCM2_CHARGER_2   = "2241A5"  // Charger data set 2
+        const val HPCM2_CHARGER_2_R = "6241A5"
 
-        const val HPCM2_BATTERY     = "1AB0"  // HV Voltage, Current, Power, Temps
-        const val HPCM2_BATTERY_R   = "5AB0"
+        const val HPCM2_BATTERY     = "2241B0"  // HV Voltage, Current, Power, Temps
+        const val HPCM2_BATTERY_R   = "6241B0"
 
-        const val HPCM2_BECM_INFO   = "1AB4"  // BECM extended info (heating/cooling, capacity)
-        const val HPCM2_BECM_INFO_R = "5AB4"
+        const val HPCM2_BECM_INFO   = "2241B4"  // BECM extended info (heating/cooling, capacity)
+        const val HPCM2_BECM_INFO_R = "6241B4"
+
+        // Cell Voltages (Module 621) uses a different DID, let's keep it as is or correct if needed later. But wait, what was cell voltage DID?
 
         const val HPCM2_CHARGER_3   = "1ACB"  // Charger data set 3
         const val HPCM2_CHARGER_3_R = "5ACB"
@@ -170,7 +172,7 @@ object BatteryDataParser {
         val idx = clean.indexOf(Pids.HPCM2_SOC_RANGE_R.lowercase())
         if (idx < 0) return null
 
-        val payload = clean.substring(idx + 4) // skip "5A90"
+        val payload = clean.substring(idx + Pids.HPCM2_SOC_RANGE_R.length) // skip "624190"
         val bytes = hexToBytes(payload)
         if (bytes.size < 6) return null
 
@@ -200,7 +202,7 @@ object BatteryDataParser {
         val idx = clean.indexOf(Pids.HPCM2_BATTERY_R.lowercase())
         if (idx < 0) return null
 
-        val payload = clean.substring(idx + 4)
+        val payload = clean.substring(idx + Pids.HPCM2_BATTERY_R.length)
         val bytes = hexToBytes(payload)
         if (bytes.size < 6) return null
 
@@ -237,7 +239,7 @@ object BatteryDataParser {
         val idx = clean.indexOf(Pids.HPCM2_BECM_INFO_R.lowercase())
         if (idx < 0) return null
 
-        val payload = clean.substring(idx + 4)
+        val payload = clean.substring(idx + Pids.HPCM2_BECM_INFO_R.length)
         val bytes = hexToBytes(payload)
         if (bytes.size < 4) return null
 
@@ -269,7 +271,7 @@ object BatteryDataParser {
         val idx = clean.indexOf(Pids.HPCM2_CELLS_R.lowercase())
         if (idx < 0) return null
 
-        val payload = clean.substring(idx + 4)
+        val payload = clean.substring(idx + Pids.HPCM2_CELLS_R.length)
         val bytes = hexToBytes(payload)
         if (bytes.size < 4) return null
 
@@ -313,7 +315,7 @@ object BatteryDataParser {
         val idx = clean.indexOf(Pids.HPCM2_CHARGER_1_R.lowercase())
         if (idx < 0) return null
 
-        val payload = clean.substring(idx + 4)
+        val payload = clean.substring(idx + Pids.HPCM2_CHARGER_1_R.length)
         val bytes = hexToBytes(payload)
         if (bytes.size < 4) return null
 
