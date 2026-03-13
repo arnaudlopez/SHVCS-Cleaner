@@ -1,5 +1,8 @@
 package com.shvcs.cleaner
 
+import android.annotation.SuppressLint
+import android.bluetooth.BluetoothDevice
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -45,6 +48,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.platform.LocalContext
 import com.shvcs.cleaner.ui.theme.*
 import com.shvcs.cleaner.elm.UdsResponse
 import com.shvcs.cleaner.elm.DtcParser
@@ -84,10 +88,13 @@ class MainActivity : ComponentActivity() {
                         ip = state.elmIp,
                         port = state.elmPort,
                         seedKeyMap = state.seedKeyMap,
+                        connectionMode = state.connectionMode,
                         onSave = { ip, port -> viewModel.saveSettings(ip, port); showSettings = false },
                         onBack = { showSettings = false },
                         onSaveSeedKey = { seed, key -> viewModel.saveSeedKeyMapping(seed, key) },
-                        onDeleteSeedKey = { seed -> viewModel.deleteSeedKeyMapping(seed) }
+                        onDeleteSeedKey = { seed -> viewModel.deleteSeedKeyMapping(seed) },
+                        onSetConnectionMode = { viewModel.setConnectionMode(it) },
+                        onConnectBluetooth = { device -> viewModel.connectBluetooth(device); showSettings = false }
                     )
                 } else {
                     MainScreen(
@@ -1425,10 +1432,13 @@ fun SettingsScreen(
     ip: String,
     port: Int,
     seedKeyMap: Map<String, String>,
+    connectionMode: ConnectionMode,
     onSave: (String, Int) -> Unit,
     onBack: () -> Unit,
     onSaveSeedKey: (String, String) -> Unit,
-    onDeleteSeedKey: (String) -> Unit
+    onDeleteSeedKey: (String) -> Unit,
+    onSetConnectionMode: (ConnectionMode) -> Unit,
+    onConnectBluetooth: (BluetoothDevice) -> Unit
 ) {
     var currentIp by remember { mutableStateOf(ip) }
     var currentPort by remember { mutableStateOf(port.toString()) }
@@ -1461,11 +1471,44 @@ fun SettingsScreen(
         // Scrollable content
         Column(
             modifier = Modifier.weight(1f)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // ═══ ELM327 Connection ═══
-            Text("ELM327 WiFi CONNECTION", style = MaterialTheme.typography.titleMedium, color = RacingOrange)
+            // ═══ Connection Mode ═══
+            Text("MODE DE CONNEXION", style = MaterialTheme.typography.titleMedium, color = RacingOrange)
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(
+                    onClick = { onSetConnectionMode(ConnectionMode.WIFI) },
+                    modifier = Modifier.weight(1f).height(44.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (connectionMode == ConnectionMode.WIFI) RacingRed else RacingDarkGray,
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("📶 WiFi", fontWeight = FontWeight.Bold)
+                }
+                Button(
+                    onClick = { onSetConnectionMode(ConnectionMode.BLUETOOTH) },
+                    modifier = Modifier.weight(1f).height(44.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (connectionMode == ConnectionMode.BLUETOOTH) RacingRed else RacingDarkGray,
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("🔵 Bluetooth", fontWeight = FontWeight.Bold)
+                }
+            }
+
+            if (connectionMode == ConnectionMode.WIFI) {
+                // ═══ WiFi Settings ═══
+                Text("ELM327 WiFi CONNECTION", style = MaterialTheme.typography.titleMedium, color = RacingOrange)
 
             OutlinedTextField(currentIp, { currentIp = it }, label = { Text("IP Address") },
                 modifier = Modifier.fillMaxWidth(), singleLine = true,
@@ -1572,13 +1615,72 @@ fun SettingsScreen(
                         }
                     }
                 }
+            } // end if WiFi
+            }
+
+            if (connectionMode == ConnectionMode.BLUETOOTH) {
+                // ═══ Bluetooth Settings ═══
+                Text("ELM327 BLUETOOTH", style = MaterialTheme.typography.titleMedium, color = RacingOrange)
+                Text("Sélectionner un adaptateur Bluetooth appairé.",
+                    style = MaterialTheme.typography.bodySmall, color = RacingDimGray)
+                Text("Pour appairer : Paramètres Android → Bluetooth → Associer.",
+                    style = MaterialTheme.typography.bodySmall, color = RacingDimGray)
+
+                Spacer(Modifier.height(8.dp))
+
+                // List paired Bluetooth devices
+                val context = LocalContext.current
+                val bluetoothAdapter = remember {
+                    (context.getSystemService(Context.BLUETOOTH_SERVICE) as? android.bluetooth.BluetoothManager)?.adapter
+                }
+
+                @SuppressLint("MissingPermission")
+                val pairedDevices = remember {
+                    try {
+                        bluetoothAdapter?.bondedDevices?.toList() ?: emptyList()
+                    } catch (_: SecurityException) {
+                        emptyList<BluetoothDevice>()
+                    }
+                }
+
+                if (pairedDevices.isEmpty()) {
+                    Text("Aucun appareil Bluetooth appairé trouvé.",
+                        color = RacingDimGray, style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(vertical = 16.dp))
+                } else {
+                    pairedDevices.forEach { device ->
+                        @SuppressLint("MissingPermission")
+                        val deviceName = try { device.name ?: device.address } catch (_: SecurityException) { device.address }
+                        val deviceAddr = device.address
+
+                        Button(
+                            onClick = { onConnectBluetooth(device) },
+                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = RacingDarkGray, contentColor = Color.White
+                            )
+                        ) {
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                horizontalAlignment = Alignment.Start
+                            ) {
+                                Text(deviceName, fontWeight = FontWeight.Bold, color = RacingWhite)
+                                Text(deviceAddr, fontSize = 10.sp, color = RacingDimGray)
+                            }
+                            Text("CONNECTER →", fontSize = 10.sp, color = RacingGreen,
+                                fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(Modifier.height(4.dp))
+                    }
+                }
             }
         }
 
         // Footer
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             Text("SHVCS Cleaner v1.0", color = RacingDimGray, fontSize = 11.sp)
-            Text("WiFi ELM327 → HCPM2 (7E4/7EC)", color = RacingDimGray, fontSize = 10.sp)
+            Text("WiFi / Bluetooth ELM327 → HCPM2 (7E4/7EC)", color = RacingDimGray, fontSize = 10.sp)
             Text("CAN 11-bit 500kbps • UDS Protocol", color = RacingDimGray, fontSize = 10.sp)
         }
     }
