@@ -465,7 +465,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     heaterOn = bd.activeHeating,
                     coolingOn = bd.activeCooling,
                     heaterPower = bd.batteryHeaterPower,
-                    voltage12v = _state.value.voltage
+                    voltage12v = _state.value.voltage,
+                    odometerKm = bd.odometerKm,
+                    vehicleSpeed = bd.vehicleSpeed,
+                    engineRpm = bd.engineRpm,
+                    coolantTemp = bd.coolantTemp,
+                    chargerTemp1 = bd.chargerTemp1,
+                    chargerTemp2 = bd.chargerTemp2
                 )
                 db.scanResultDao().insert(scanResult)
                 _state.value = _state.value.copy(

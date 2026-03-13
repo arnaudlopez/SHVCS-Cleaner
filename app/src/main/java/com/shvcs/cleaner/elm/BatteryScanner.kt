@@ -5,13 +5,18 @@ import com.shvcs.cleaner.elm.BatteryDataParser.Pids
 /**
  * Orchestrates a full battery scan sequence via ELM327 WiFi.
  *
- * Scan sequence (from Voltage W3/l.smali):
- * 1. Configure HPCM2 CAN header (ATSH7E4)
- * 2. Read SOC + Range (PID 224190)
- * 3. Read HV Battery (PID 2241B0)
- * 4. Read BECM Info (PID 2241B4)
- * 5. Read Charger Data 1 (PID 2241A3)
- * 6. Read Cell voltages (PID 1ADF) — multi-frame
+ * Scan sequence follows Voltage app's W3/l.smali V0 method:
+ * 1. Configure ELM327 (no ATZ — lightweight setup)
+ * 2. Read Odometer from TCM (ATSH7E1 → 222889)
+ * 3. Read Engine data from ECM (ATSH7E0 → 22000D, 22000C, 220005)
+ * 4. Switch to HPCM2 (ATSH7E4) for all battery reads:
+ *    a. SOC + Range (1A90 → 5A90)
+ *    b. HV Battery Pack (1AB0 → 5AB0)
+ *    c. BECM Info (1AB4 → 5AB4)
+ *    d. Charger Data (1AA3 → 5AA3)
+ *    e. Charger Temperatures (2241C5, 2241C6)
+ * 5. Setup BECM flow control → read cell voltages (1ADF → 5ADF)
+ * 6. Reset flow control
  * 7. Merge all results into BatteryData
  */
 object BatteryScanner {
@@ -23,27 +28,25 @@ object BatteryScanner {
         fun onError(error: String)
     }
 
-    private const val TOTAL_SCAN_STEPS = 8
+    private const val TOTAL_SCAN_STEPS = 12
 
     /**
-     * Configure ELM327 for HPCM2 communication (Header 7E4).
-     * This is reusable before any HPCM2 PID request.
+     * Lightweight ELM327 configuration — NO ATZ reset.
+     * Assumes init was already done by OBDProtocol.executeInitAndReadData().
      */
-    private suspend fun configureForHpcm2(elm: ElmWifiManager, listener: Listener): Boolean {
+    private suspend fun configureElm(elm: ElmWifiManager, listener: Listener): Boolean {
         val commands = listOf(
-            "ATZ" to "Reset ELM327",
             "ATE0" to "Echo OFF",
             "ATL0" to "Linefeed OFF",
             "ATS0" to "Spaces OFF",
             "ATH0" to "Headers OFF",
             "ATSP6" to "Protocol: CAN 11-bit 500kbps",
             "ATCAF1" to "CAN Auto-Formatting ON",
-            "ATSH7E4" to "Set Header → HPCM2",
         )
 
         for ((cmd, desc) in commands) {
             listener.onLog("► $cmd ($desc)")
-            val result = elm.sendCommand(cmd, timeoutMs = if (cmd == "ATZ") 4000L else 2000L)
+            val result = elm.sendCommand(cmd, timeoutMs = 2000L)
             result.onSuccess { response ->
                 val trimmed = response.trim()
                 if (trimmed.contains("ERROR") || trimmed.contains("?")) {
@@ -53,21 +56,38 @@ object BatteryScanner {
                 }
             }.onFailure { e ->
                 listener.onLog("  ✗ Error: ${e.message}")
-                if (cmd != "ATZ") {
-                    listener.onError("Config failed at: $desc — ${e.message}")
-                    return false
-                }
+                listener.onError("Config failed at: $desc — ${e.message}")
+                return false
             }
-            kotlinx.coroutines.delay(if (cmd == "ATZ") 1000L else 200L)
+            kotlinx.coroutines.delay(100)
         }
         return true
     }
 
     /**
-     * Send a GM GMLAN PID request and return the raw response.
-     *
-     * GM format: just send the DID bytes (e.g. "1AB0") — no "22" prefix.
-     * Response starts with "5A" + low byte of DID.
+     * Switch CAN header to target module.
+     */
+    private suspend fun setHeader(
+        elm: ElmWifiManager,
+        header: String,
+        listener: Listener
+    ): Boolean {
+        val cmd = "ATSH$header"
+        listener.onLog("► $cmd (Header → $header)")
+        val result = elm.sendCommand(cmd, timeoutMs = 2000L)
+        result.onSuccess { response ->
+            listener.onLog("  ◄ ${response.trim()}")
+        }.onFailure { e ->
+            listener.onLog("  ✗ Header switch failed: ${e.message}")
+            return false
+        }
+        kotlinx.coroutines.delay(100)
+        return true
+    }
+
+    /**
+     * Send a PID request and return the raw response.
+     * Works for both GM Service 1A PIDs and UDS Service 22 PIDs.
      */
     private suspend fun requestPid(
         elm: ElmWifiManager,
@@ -90,61 +110,66 @@ object BatteryScanner {
         }.onFailure { e ->
             listener.onLog("  ✗ Error: ${e.message}")
         }
-        kotlinx.coroutines.delay(200)
+        kotlinx.coroutines.delay(150)
         return response
     }
 
     /**
-     * Helper function to send a command, log it, and handle retries/errors.
-     * This is a new helper function introduced by the change.
+     * Setup BECM ISO-TP flow control for multi-frame reads.
+     * Required before reading cell voltages (1ADF) on BECM.
+     *
+     * Sequence from Voltage Q0 method:
+     *   ATFCSH24C → ATFCSD300014 → ATFCSM1
      */
-    private suspend fun sendCommandWithFormatAndRetry(
-        elm: ElmWifiManager,
-        listener: Listener,
-        pid: String,
-        description: String = pid,
-        timeoutMs: Long = 5000L,
-        retries: Int = 1
-    ): String? {
-        var attempt = 0
-        while (attempt <= retries) {
-            listener.onLog("► $pid ($description) - Attempt ${attempt + 1}")
-            val result = elm.sendCommand(pid, timeoutMs = timeoutMs)
+    private suspend fun setupFlowControl(elm: ElmWifiManager, listener: Listener): Boolean {
+        val commands = listOf(
+            "ATFCSH24C" to "Flow Control Header → BECM",
+            "ATFCSD300014" to "FC Data: BS=0, STmin=20ms",
+            "ATFCSM1" to "FC Mode: User-defined",
+        )
+        for ((cmd, desc) in commands) {
+            listener.onLog("► $cmd ($desc)")
+            val result = elm.sendCommand(cmd, timeoutMs = 2000L)
             result.onSuccess { resp ->
-                val trimmed = resp.trim()
-                listener.onLog("  ◄ $trimmed")
-                if (trimmed.uppercase().contains("NO DATA") || trimmed.uppercase().contains("ERROR")) {
-                    listener.onLog("  ⚠ No data for $description")
-                } else {
-                    return trimmed
-                }
+                listener.onLog("  ◄ ${resp.trim()}")
             }.onFailure { e ->
-                listener.onLog("  ✗ Error: ${e.message}")
+                listener.onLog("  ✗ Flow control setup failed: ${e.message}")
+                return false
             }
-            kotlinx.coroutines.delay(200)
-            attempt++
+            kotlinx.coroutines.delay(100)
         }
-        return null
+        return true
+    }
+
+    /**
+     * Reset flow control mode back to automatic.
+     */
+    private suspend fun resetFlowControl(elm: ElmWifiManager, listener: Listener) {
+        listener.onLog("► ATFCSM0 (Reset FC to auto)")
+        elm.sendCommand("ATFCSM0", timeoutMs = 2000L).onSuccess { resp ->
+            listener.onLog("  ◄ ${resp.trim()}")
+        }
+        kotlinx.coroutines.delay(100)
     }
 
     /**
      * Execute a full battery scan.
      *
-     * Configures ELM for HPCM2, reads all battery PIDs, and returns
-     * a merged BatteryData snapshot.
+     * Reads data from multiple CAN modules in the correct order,
+     * matching Voltage app's protocol sequences.
      */
     suspend fun scanBattery(elm: ElmWifiManager, listener: Listener): BatteryDataParser.BatteryData? {
         var step = 0
         var data = BatteryDataParser.BatteryData()
 
         try {
-            // ── Step 1: Configure ELM for HPCM2 ──
+            // ── Step 1: Configure ELM (no ATZ reset!) ──
             step++
-            listener.onProgress(step, TOTAL_SCAN_STEPS, "Configuring for HPCM2...")
+            listener.onProgress(step, TOTAL_SCAN_STEPS, "Configuring ELM327...")
             listener.onLog("")
-            listener.onLog("═══ BATTERY SCAN — HPCM2 ═══")
+            listener.onLog("═══ BATTERY SCAN ═══")
 
-            if (!configureForHpcm2(elm, listener)) {
+            if (!configureElm(elm, listener)) {
                 return null
             }
 
@@ -154,10 +179,63 @@ object BatteryScanner {
             val voltage12v = requestPid(elm, "ATRV", "12V Battery Voltage", listener)
             data = data.copy(voltage12v = voltage12v)
 
-            // ── Step 3: Read SOC + Range (224190) ──
+            // ── Step 3: Read Odometer from TCM (Header 7E1) ──
             step++
-            listener.onProgress(step, TOTAL_SCAN_STEPS, "Reading SOC & EV Range...")
-            val socResult = sendCommandWithFormatAndRetry(elm, listener, Pids.HPCM2_SOC_RANGE, "SOC + EV Range")
+            listener.onProgress(step, TOTAL_SCAN_STEPS, "Reading odometer...")
+            listener.onLog("")
+            listener.onLog("═══ TCM MODULE (7E1) ═══")
+            if (setHeader(elm, "7E1", listener)) {
+                val odoResult = requestPid(elm, Pids.TCM_ODOMETER, "Odometer", listener)
+                odoResult?.let { BatteryDataParser.parseOdometer(it) }?.let {
+                    data = data.copy(odometerKm = it.odometerKm)
+                    listener.onLog("  ✓ Odometer: ${it.odometerKm?.let { km -> "%.0f km".format(km) } ?: "?"}")
+                }
+            }
+
+            // ── Step 4: Read Engine data from ECM (Header 7E0) ──
+            step++
+            listener.onProgress(step, TOTAL_SCAN_STEPS, "Reading engine data...")
+            listener.onLog("")
+            listener.onLog("═══ ECM MODULE (7E0) ═══")
+            if (setHeader(elm, "7E0", listener)) {
+                // Vehicle Speed
+                requestPid(elm, Pids.ECM_VEHICLE_SPEED, "Vehicle Speed", listener)?.let {
+                    BatteryDataParser.parseVehicleSpeed(it)?.let { parsed ->
+                        data = data.copy(vehicleSpeed = parsed.vehicleSpeed)
+                    }
+                }
+                // Engine RPM
+                requestPid(elm, Pids.ECM_ENGINE_RPM, "Engine RPM", listener)?.let {
+                    BatteryDataParser.parseEngineRpm(it)?.let { parsed ->
+                        data = data.copy(engineRpm = parsed.engineRpm)
+                    }
+                }
+                // Coolant Temperature
+                requestPid(elm, Pids.ECM_COOLANT_TEMP, "Coolant Temp", listener)?.let {
+                    BatteryDataParser.parseCoolantTemp(it)?.let { parsed ->
+                        data = data.copy(coolantTemp = parsed.coolantTemp)
+                    }
+                }
+
+                if (data.vehicleSpeed != null || data.engineRpm != null || data.coolantTemp != null) {
+                    listener.onLog("  ✓ Speed: ${data.vehicleSpeed?.let { "%.0f km/h".format(it) } ?: "?"} | " +
+                        "RPM: ${data.engineRpm?.let { "%.0f".format(it) } ?: "?"} | " +
+                        "Coolant: ${data.coolantTemp?.let { "%.0f°C".format(it) } ?: "?"}")
+                }
+            }
+
+            // ── Step 5: Switch to HPCM2 (Header 7E4) ──
+            step++
+            listener.onProgress(step, TOTAL_SCAN_STEPS, "Reading SOC & Range...")
+            listener.onLog("")
+            listener.onLog("═══ HPCM2 MODULE (7E4) ═══")
+            if (!setHeader(elm, "7E4", listener)) {
+                listener.onError("Cannot set HPCM2 header")
+                return null
+            }
+
+            // ── Step 6: Read SOC + Range (1A90) ──
+            val socResult = requestPid(elm, Pids.HPCM2_SOC_RANGE, "SOC + EV Range", listener)
             socResult?.let { BatteryDataParser.parseSocRange(it) }?.let {
                 data = data.copy(
                     socDisplayed = it.socDisplayed,
@@ -172,49 +250,51 @@ object BatteryScanner {
                     "Range: ${data.evRange?.let { "%.0f".format(it) } ?: "?"} km")
             }
 
-            // ── Step 4: Read HV Battery Pack (2241B0) ──
+            // ── Step 7: Read HV Battery Pack (1AB0) ──
             step++
-            listener.onProgress(step, TOTAL_SCAN_STEPS, "Reading HV battery pack...")
-            val packResult = sendCommandWithFormatAndRetry(elm, listener, Pids.HPCM2_BATTERY, "HV Battery Pack")
+            listener.onProgress(step, TOTAL_SCAN_STEPS, "Reading HV battery...")
+            val packResult = requestPid(elm, Pids.HPCM2_BATTERY, "HV Battery Pack", listener)
             packResult?.let { BatteryDataParser.parseBatteryPack(it) }?.let {
                 data = data.copy(
                     hvVoltage = it.hvVoltage,
                     hvAmperage = it.hvAmperage,
                     hvPower = it.hvPower,
-                    batteryTemp = it.batteryTemp
+                    batteryTemp = it.batteryTemp,
+                    ambientTemp = it.ambientTemp
                 )
             }
 
-            if (data.hvVoltage != null || data.hvAmperage != null || data.hvPower != null || data.batteryTemp != null) {
+            if (data.hvVoltage != null) {
                 listener.onLog("  ✓ HV: ${data.hvVoltage?.let { "%.1f".format(it) } ?: "?"}V | " +
                     "${data.hvAmperage?.let { "%.1f".format(it) } ?: "?"}A | " +
                     "${data.hvPower?.let { "%.1f".format(it) } ?: "?"} kW | " +
                     "Temp: ${data.batteryTemp?.let { "%.0f".format(it) } ?: "?"}°C")
             }
 
-            // ── Step 5: Read BECM Info (2241B4) ──
+            // ── Step 8: Read BECM Info (1AB4) ──
             step++
             listener.onProgress(step, TOTAL_SCAN_STEPS, "Reading BECM info...")
-            val becmResult = sendCommandWithFormatAndRetry(elm, listener, Pids.HPCM2_BECM_INFO, "BECM Info")
+            val becmResult = requestPid(elm, Pids.HPCM2_BECM_INFO, "BECM Info", listener)
             becmResult?.let { BatteryDataParser.parseBecmInfo(it) }?.let {
                 data = data.copy(
                     capacityAh = it.capacityAh,
                     isolationKohm = it.isolationKohm,
                     activeHeating = it.activeHeating,
-                    activeCooling = it.activeCooling
+                    activeCooling = it.activeCooling,
+                    batteryHeaterPower = it.batteryHeaterPower
                 )
             }
 
-            if (data.capacityAh != null || data.isolationKohm != null || data.activeHeating || data.activeCooling) {
+            if (data.capacityAh != null || data.isolationKohm != null) {
                 listener.onLog("  ✓ Capacity: ${data.capacityAh?.let { "%.1f".format(it) } ?: "?"} Ah | " +
                     "Isolation: ${data.isolationKohm?.let { "%.0f".format(it) } ?: "?"} kΩ | " +
                     "Heating: ${data.activeHeating} | Cooling: ${data.activeCooling}")
             }
 
-            // ── Step 6: Read Charger Data (2241A3) ──
+            // ── Step 9: Read Charger Data (1AA3) ──
             step++
             listener.onProgress(step, TOTAL_SCAN_STEPS, "Reading charger data...")
-            val chargerResult = sendCommandWithFormatAndRetry(elm, listener, Pids.HPCM2_CHARGER_1, "Charger Data")
+            val chargerResult = requestPid(elm, Pids.HPCM2_CHARGER_1, "Charger Data", listener)
             chargerResult?.let { BatteryDataParser.parseCharger1(it) }?.let {
                 data = data.copy(
                     chargerAcPower = it.chargerAcPower,
@@ -222,27 +302,46 @@ object BatteryScanner {
                 )
             }
 
+            // Charger Temperatures (UDS Service 22 on HPCM2)
+            requestPid(elm, Pids.HPCM2_CHARGER_TEMP_1, "Charger Temp 1", listener)?.let {
+                BatteryDataParser.parseChargerTemp1(it)?.let { parsed ->
+                    data = data.copy(chargerTemp1 = parsed.chargerTemp1)
+                }
+            }
+            requestPid(elm, Pids.HPCM2_CHARGER_TEMP_2, "Charger Temp 2", listener)?.let {
+                BatteryDataParser.parseChargerTemp2(it)?.let { parsed ->
+                    data = data.copy(chargerTemp2 = parsed.chargerTemp2)
+                }
+            }
+
             if (data.chargerAcPower != null || data.chargerHvPower != null) {
                 listener.onLog("  ✓ AC Power: ${data.chargerAcPower?.let { "%.1f".format(it) } ?: "?"} kW | " +
                     "HV Power: ${data.chargerHvPower?.let { "%.1f".format(it) } ?: "?"} kW")
             }
 
-            // ── Step 7: Read Cell Voltages (1ADF) ──
+            // ── Step 10: Setup flow control + read Cell Voltages (1ADF) ──
             step++
             listener.onProgress(step, TOTAL_SCAN_STEPS, "Scanning cell voltages...")
             listener.onLog("")
             listener.onLog("═══ CELL VOLTAGE SCAN ═══")
 
-            // Cell voltages may be multi-frame, request with longer timeout
-            val cellResponse = sendCommandWithFormatAndRetry(elm, listener, Pids.HPCM2_CELLS, "Cell Voltages", timeoutMs = 15000L)
-            cellResponse?.let { BatteryDataParser.parseCellVoltages(it) }?.let {
-                data = data.copy(
-                    cellVoltages = it.cellVoltages,
-                    cellMin = it.cellMin,
-                    cellMax = it.cellMax,
-                    cellAvg = it.cellAvg,
-                    cellDelta = it.cellDelta
-                )
+            // Setup BECM flow control for multi-frame ISO-TP read
+            if (setupFlowControl(elm, listener)) {
+                val cellResponse = requestPid(elm, Pids.HPCM2_CELLS, "Cell Voltages", listener, timeoutMs = 15000L)
+                cellResponse?.let { BatteryDataParser.parseCellVoltages(it) }?.let {
+                    data = data.copy(
+                        cellVoltages = it.cellVoltages,
+                        cellMin = it.cellMin,
+                        cellMax = it.cellMax,
+                        cellAvg = it.cellAvg,
+                        cellDelta = it.cellDelta
+                    )
+                }
+
+                // Reset flow control
+                resetFlowControl(elm, listener)
+            } else {
+                listener.onLog("  ⚠ Flow control setup failed — skipping cell voltages")
             }
 
             if (data.cellVoltages.isNotEmpty()) {
@@ -255,7 +354,14 @@ object BatteryScanner {
                 listener.onLog("  ⚠ No cell voltage data received")
             }
 
-            // ── Step 8: Merge & Complete ──
+            // ── Step 11: Restore HPCM2 header ──
+            step++
+            listener.onProgress(step, TOTAL_SCAN_STEPS, "Restoring defaults...")
+            setHeader(elm, "7E4", listener)
+            // Restore CAN auto-formatting
+            elm.sendCommand("ATCAF1", timeoutMs = 2000L)
+
+            // ── Step 12: Merge & Complete ──
             step++
             listener.onProgress(step, TOTAL_SCAN_STEPS, "Scan complete!")
 
@@ -274,15 +380,16 @@ object BatteryScanner {
 
     /**
      * Quick scan — reads only essential data (SOC + HV voltage + temp).
-     * Much faster than full scan, useful for live monitoring.
+     * Much faster: stays on HPCM2 header, no header switch, no flow control.
+     * Used by LiveMonitor for fast polling.
      */
     suspend fun quickScan(elm: ElmWifiManager, listener: Listener): BatteryDataParser.BatteryData? {
         try {
-            // Read SOC
+            // Read SOC (1A90 on 7E4 — header should already be set)
             val socResponse = requestPid(elm, Pids.HPCM2_SOC_RANGE, "SOC", listener, timeoutMs = 3000L)
             val socData = socResponse?.let { BatteryDataParser.parseSocRange(it) }
 
-            // Read Battery pack
+            // Read Battery pack (1AB0 on same header)
             val batResponse = requestPid(elm, Pids.HPCM2_BATTERY, "HV Battery", listener, timeoutMs = 3000L)
             val batData = batResponse?.let { BatteryDataParser.parseBatteryPack(it) }
 

@@ -4,13 +4,20 @@ package com.shvcs.cleaner.elm
  * Data classes and parser for battery data from HPCM2 and BECM modules.
  *
  * PID mapping reverse-engineered from Voltage 2.1.1 app (io.tripovan.voltage).
- * Uses GM GMLAN proprietary protocol:
- *   - Request:  raw DID bytes (e.g. "1AB0")
- *   - Response: "5A" + DID low byte + data (e.g. "5AB0" + payload)
  *
- * ECU Headers:
+ * Two protocol families are used:
+ *   1. GM GMLAN Service 1A (fast batch reads):
+ *      - Request:  raw DID bytes (e.g. "1AB0")
+ *      - Response: "5A" + DID low byte + data (e.g. "5AB0" + payload)
+ *   2. UDS Service 22 (individual parameter reads):
+ *      - Request: "22" + DID (e.g. "222889")
+ *      - Response: "62" + DID + data (e.g. "622889" + payload)
+ *
+ * ECU Headers (CAN IDs):
+ *   - ATSH7E0 → ECM (Engine Control Module)
+ *   - ATSH7E1 → TCM (Transmission Control Module)
  *   - ATSH7E4 → HPCM2 (Hybrid Powertrain Control Module 2)
- *   - ATSH621 → BECM (Battery Energy Control Module)
+ *   - ATSH24C → BECM direct (Battery Energy Control Module)
  */
 object BatteryDataParser {
 
@@ -32,10 +39,13 @@ object BatteryDataParser {
         // ── Temperature ──
         val batteryTemp: Float? = null,       // Battery pack temperature (°C)
         val ambientTemp: Float? = null,       // Outside temperature (°C)
+        val chargerTemp1: Float? = null,      // Charger temperature sensor 1 (°C)
+        val chargerTemp2: Float? = null,      // Charger temperature sensor 2 (°C)
 
         // ── Battery Health ──
         val capacityAh: Float? = null,        // Usable capacity (Ah)
         val isolationKohm: Float? = null,     // HV isolation resistance (kΩ)
+        val batteryHealth: Float? = null,     // Overall battery health indicator
 
         // ── 12V System ──
         val voltage12v: String? = null,       // 12V battery voltage from ATRV
@@ -61,10 +71,11 @@ object BatteryDataParser {
         // ── Odometer ──
         val odometerKm: Float? = null,
 
-        // ── Engine (from ECM) ──
-        val coolantTemp: Float? = null,
+        // ── Engine (from ECM 7E0) ──
+        val coolantTemp: Float? = null,       // Engine coolant temperature (°C)
         val oilTemp: Float? = null,
-        val engineRpm: Float? = null,
+        val engineRpm: Float? = null,         // Engine RPM
+        val vehicleSpeed: Float? = null,      // Vehicle speed (km/h)
 
         // ── Scan Status ──
         val scanTimestamp: Long = System.currentTimeMillis(),
@@ -72,55 +83,89 @@ object BatteryDataParser {
     )
 
     // ═══════════════════════════════════════════════════════════
-    // GM GMLAN PIDs — HPCM2 (Header 7E4)
+    // PIDs — GM Service 1A (fast batch reads on HPCM2 / BECM)
     // ═══════════════════════════════════════════════════════════
 
     /**
      * HPCM2 PIDs extracted from Voltage smali (W3/l.smali).
      *
-     * GM GMLAN uses "AE"-prefix service for extended operations and
-     * direct DID reads with 1A/5A prefix for data.
+     * GM GMLAN Service 1A: send raw DID, response starts with "5A" + low byte.
+     * UDS Service 22: send "22" + DID, response starts with "62" + DID.
      */
     object Pids {
-        // Request → Expected response prefix
-        const val HPCM2_SOC_RANGE   = "224190"  // SOC Displayed, SOC Raw, EV Range
-        const val HPCM2_SOC_RANGE_R = "624190"
+        // ── GM Service 1A (Header 7E4 / HPCM2) ──
+        const val HPCM2_SOC_RANGE   = "1A90"    // SOC Displayed, SOC Raw, EV Range
+        const val HPCM2_SOC_RANGE_R = "5A90"
 
-        const val HPCM2_CHARGER_1   = "2241A3"  // Charger data set 1
-        const val HPCM2_CHARGER_1_R = "6241A3"
+        const val HPCM2_BATTERY     = "1AB0"    // HV Voltage, Current, Power, Temps
+        const val HPCM2_BATTERY_R   = "5AB0"
 
-        const val HPCM2_CHARGER_2   = "2241A5"  // Charger data set 2
-        const val HPCM2_CHARGER_2_R = "6241A5"
+        const val HPCM2_BECM_INFO   = "1AB4"    // BECM extended info (capacity, isolation, heating/cooling)
+        const val HPCM2_BECM_INFO_R = "5AB4"
 
-        const val HPCM2_BATTERY     = "2241B0"  // HV Voltage, Current, Power, Temps
-        const val HPCM2_BATTERY_R   = "6241B0"
+        const val HPCM2_CHARGER_1   = "1AA3"    // Charger data set 1 (AC power, HV power)
+        const val HPCM2_CHARGER_1_R = "5AA3"
 
-        const val HPCM2_BECM_INFO   = "2241B4"  // BECM extended info (heating/cooling, capacity)
-        const val HPCM2_BECM_INFO_R = "6241B4"
+        const val HPCM2_CHARGER_2   = "1AA5"    // Charger data set 2 (requires security access)
+        const val HPCM2_CHARGER_2_R = "5AA5"
 
-        // Cell Voltages (Module 621) uses a different DID, let's keep it as is or correct if needed later. But wait, what was cell voltage DID?
-
-        const val HPCM2_CHARGER_3   = "1ACB"  // Charger data set 3
+        const val HPCM2_CHARGER_3   = "1ACB"    // Charger data set 3
         const val HPCM2_CHARGER_3_R = "5ACB"
 
-        const val HPCM2_CHARGER_4   = "1ACC"  // Charger data set 4
+        const val HPCM2_CHARGER_4   = "1ACC"    // Charger data set 4
         const val HPCM2_CHARGER_4_R = "5ACC"
 
-        const val HPCM2_CELLS       = "1ADF"  // Cell voltages (multi-frame, up to 96 cells)
+        const val HPCM2_CELLS       = "1ADF"    // Cell voltages (multi-frame, up to 96 cells)
         const val HPCM2_CELLS_R     = "5ADF"
 
-        // Cell voltage scan via BECM broadcast
-        const val BECM_CELL_SCAN    = "FE021AB0" // Used with CAN filters ATCF600/ATCM700
+        // Cell voltage scan via BECM broadcast (raw CAN mode)
+        const val BECM_CELL_SCAN    = "FE021AB0"
+
+        // ── UDS Service 22 (Various modules) ──
+
+        // TCM (Header 7E1) — Odometer
+        const val TCM_ODOMETER      = "222889"
+        const val TCM_ODOMETER_R    = "622889"
+
+        // ECM (Header 7E0) — Engine data
+        const val ECM_VEHICLE_SPEED = "22000D"
+        const val ECM_VEHICLE_SPEED_R = "62000D"
+        const val ECM_ENGINE_RPM    = "22000C"
+        const val ECM_ENGINE_RPM_R  = "62000C"
+        const val ECM_COOLANT_TEMP  = "220005"
+        const val ECM_COOLANT_TEMP_R = "620005"
+        const val ECM_FUEL_TRIM     = "22002F"
+        const val ECM_FUEL_TRIM_R   = "62002F"
+
+        // HPCM2 (Header 7E4) — Battery details via UDS
+        const val HPCM2_SCAN_A5     = "2243A5"  // Scan data (mileage related)
+        const val HPCM2_SCAN_A5_R   = "6243A5"
+        const val HPCM2_SCAN_7D     = "22437D"  // Scan data (status)
+        const val HPCM2_SCAN_7D_R   = "62437D"
+        const val HPCM2_BATTERY_HEALTH = "2282B5" // Battery health
+        const val HPCM2_BATTERY_HEALTH_R = "6282B5"
+        const val HPCM2_CHARGER_TEMP_1 = "2241C5"  // Charger temp 1
+        const val HPCM2_CHARGER_TEMP_1_R = "6241C5"
+        const val HPCM2_CHARGER_TEMP_2 = "2241C6"  // Charger temp 2
+        const val HPCM2_CHARGER_TEMP_2_R = "6241C6"
+        const val HPCM2_CAPACITY_EXT = "2245FF"   // Extended capacity data
+        const val HPCM2_CAPACITY_EXT_R = "6245FF"
+        const val HPCM2_CLIMATE     = "22434F"    // Climate data
+        const val HPCM2_CLIMATE_R   = "62434F"
+
+        // Charger details (Header 7E4)
+        const val HPCM2_CHARGER_DET_1 = "2243CB"
+        const val HPCM2_CHARGER_DET_1_R = "6243CB"
+        const val HPCM2_CHARGER_DET_2 = "2243CC"
+        const val HPCM2_CHARGER_DET_2_R = "6243CC"
+        const val HPCM2_CHARGER_DET_3 = "2243CD"
+        const val HPCM2_CHARGER_DET_3_R = "6243CD"
     }
 
     // ═══════════════════════════════════════════════════════════
     // Hex Parsing Utilities
     // ═══════════════════════════════════════════════════════════
 
-    /**
-     * Parse a hex string into a list of byte values.
-     * E.g. "5AB01234" → [0x5A, 0xB0, 0x12, 0x34]
-     */
     fun hexToBytes(hex: String): List<Int> {
         val clean = hex.replace(" ", "").replace("\r", "").replace("\n", "")
         return (0 until clean.length step 2).mapNotNull { i ->
@@ -130,49 +175,39 @@ object BatteryDataParser {
         }
     }
 
-    /**
-     * Extract unsigned 16-bit value from byte list at offset.
-     */
     fun uint16(bytes: List<Int>, offset: Int): Int? {
         if (offset + 1 >= bytes.size) return null
         return (bytes[offset] shl 8) or bytes[offset + 1]
     }
 
-    /**
-     * Extract signed 16-bit value from byte list at offset.
-     */
     fun int16(bytes: List<Int>, offset: Int): Int? {
         val u = uint16(bytes, offset) ?: return null
         return if (u >= 0x8000) u - 0x10000 else u
     }
 
-    /**
-     * Extract unsigned 8-bit value from byte list at offset.
-     */
     fun uint8(bytes: List<Int>, offset: Int): Int? {
         if (offset >= bytes.size) return null
         return bytes[offset]
     }
 
     // ═══════════════════════════════════════════════════════════
-    // Response Parsers
+    // Response Parsers — GM Service 1A
     // ═══════════════════════════════════════════════════════════
 
     /**
      * Parse PID 1A90 response (SOC + Range).
      *
-     * Based on Voltage smali analysis:
      * Response: 5A90 + data bytes
-     * - Byte 2-3: SOC displayed (uint16 / 100.0)
-     * - Byte 4-5: SOC raw (uint16 / 100.0)
-     * - Byte 6-7: EV range (uint16 / 10.0) → km
+     * - Byte 0-1: SOC displayed (uint16 / 100.0)
+     * - Byte 2-3: SOC raw (uint16 / 100.0)
+     * - Byte 4-5: EV range (uint16 / 10.0) → km
      */
     fun parseSocRange(response: String): BatteryData? {
         val clean = response.replace(" ", "").lowercase()
-        val idx = clean.indexOf(Pids.HPCM2_SOC_RANGE_R.lowercase())
+        val idx = clean.indexOf(HPCM2_SOC_RANGE_R.lowercase())
         if (idx < 0) return null
 
-        val payload = clean.substring(idx + Pids.HPCM2_SOC_RANGE_R.length) // skip "624190"
+        val payload = clean.substring(idx + 4) // skip "5A90" (4 chars)
         val bytes = hexToBytes(payload)
         if (bytes.size < 6) return null
 
@@ -191,7 +226,6 @@ object BatteryDataParser {
      * Parse PID 1AB0 response (Battery Pack).
      *
      * Response: 5AB0 + data bytes
-     * Voltage smali context: used with ATH1 (headers on), main battery data
      * - Byte 0-1: HV Voltage (uint16 / 100.0) → Volts
      * - Byte 2-3: HV Current (int16 / 100.0) → Amps (negative = discharging)
      * - Byte 4:   Battery Temp (uint8 - 40) → °C
@@ -199,10 +233,10 @@ object BatteryDataParser {
      */
     fun parseBatteryPack(response: String): BatteryData? {
         val clean = response.replace(" ", "").lowercase()
-        val idx = clean.indexOf(Pids.HPCM2_BATTERY_R.lowercase())
+        val idx = clean.indexOf(HPCM2_BATTERY_R.lowercase())
         if (idx < 0) return null
 
-        val payload = clean.substring(idx + Pids.HPCM2_BATTERY_R.length)
+        val payload = clean.substring(idx + 4) // skip "5AB0"
         val bytes = hexToBytes(payload)
         if (bytes.size < 6) return null
 
@@ -228,7 +262,6 @@ object BatteryDataParser {
      * Parse PID 1AB4 response (BECM Info).
      *
      * Response: 5AB4 + data bytes
-     * Voltage context: "Reading BECM info", "Active heating", "Active cooling"
      * - Byte 0-1: Capacity (uint16 / 100.0) → Ah
      * - Byte 2-3: Isolation (uint16 / 10.0) → kΩ
      * - Byte 4:   Flags (bit 0 = heating, bit 1 = cooling)
@@ -236,10 +269,10 @@ object BatteryDataParser {
      */
     fun parseBecmInfo(response: String): BatteryData? {
         val clean = response.replace(" ", "").lowercase()
-        val idx = clean.indexOf(Pids.HPCM2_BECM_INFO_R.lowercase())
+        val idx = clean.indexOf(HPCM2_BECM_INFO_R.lowercase())
         if (idx < 0) return null
 
-        val payload = clean.substring(idx + Pids.HPCM2_BECM_INFO_R.length)
+        val payload = clean.substring(idx + 4) // skip "5AB4"
         val bytes = hexToBytes(payload)
         if (bytes.size < 4) return null
 
@@ -263,15 +296,13 @@ object BatteryDataParser {
      *
      * Response: 5ADF + multi-frame data
      * Multi-frame: up to 96 cell voltages, each as uint16 / 10000.0 → Volts
-     * Voltage uses this PID 3 times (lines 11068, 11276, 11392) suggesting
-     * it reads in 3 batches (32 cells each).
      */
     fun parseCellVoltages(response: String): BatteryData? {
         val clean = response.replace(" ", "").lowercase()
-        val idx = clean.indexOf(Pids.HPCM2_CELLS_R.lowercase())
+        val idx = clean.indexOf(HPCM2_CELLS_R.lowercase())
         if (idx < 0) return null
 
-        val payload = clean.substring(idx + Pids.HPCM2_CELLS_R.length)
+        val payload = clean.substring(idx + 4) // skip "5ADF"
         val bytes = hexToBytes(payload)
         if (bytes.size < 4) return null
 
@@ -312,10 +343,10 @@ object BatteryDataParser {
      */
     fun parseCharger1(response: String): BatteryData? {
         val clean = response.replace(" ", "").lowercase()
-        val idx = clean.indexOf(Pids.HPCM2_CHARGER_1_R.lowercase())
+        val idx = clean.indexOf(HPCM2_CHARGER_1_R.lowercase())
         if (idx < 0) return null
 
-        val payload = clean.substring(idx + Pids.HPCM2_CHARGER_1_R.length)
+        val payload = clean.substring(idx + 4) // skip "5AA3"
         val bytes = hexToBytes(payload)
         if (bytes.size < 4) return null
 
@@ -328,9 +359,130 @@ object BatteryDataParser {
         )
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // Response Parsers — UDS Service 22
+    // ═══════════════════════════════════════════════════════════
+
     /**
-     * Merge multiple partial BatteryData into one complete snapshot.
+     * Parse UDS 222889 response (Odometer from TCM, header 7E1).
+     *
+     * Response: 622889 + data bytes
+     * - Byte 0-2: Odometer (uint24 / 10.0) → km
      */
+    fun parseOdometer(response: String): BatteryData? {
+        val clean = response.replace(" ", "").lowercase()
+        val idx = clean.indexOf(Pids.TCM_ODOMETER_R.lowercase())
+        if (idx < 0) return null
+
+        val payload = clean.substring(idx + 6) // skip "622889" (6 chars)
+        val bytes = hexToBytes(payload)
+        if (bytes.size < 3) return null
+
+        val raw = (bytes[0] shl 16) or (bytes[1] shl 8) or bytes[2]
+        val odometerKm = raw / 10.0f
+
+        return BatteryData(odometerKm = odometerKm)
+    }
+
+    /**
+     * Parse UDS 22000D response (Vehicle Speed from ECM, header 7E0).
+     *
+     * Response: 62000D + 1 byte
+     * - Byte 0: Speed in km/h
+     */
+    fun parseVehicleSpeed(response: String): BatteryData? {
+        val clean = response.replace(" ", "").lowercase()
+        val idx = clean.indexOf(Pids.ECM_VEHICLE_SPEED_R.lowercase())
+        if (idx < 0) return null
+
+        val payload = clean.substring(idx + 6) // skip "62000D"
+        val bytes = hexToBytes(payload)
+        if (bytes.isEmpty()) return null
+
+        return BatteryData(vehicleSpeed = bytes[0].toFloat())
+    }
+
+    /**
+     * Parse UDS 22000C response (Engine RPM from ECM, header 7E0).
+     *
+     * Response: 62000C + 2 bytes
+     * - Byte 0-1: RPM (uint16 / 4.0)
+     */
+    fun parseEngineRpm(response: String): BatteryData? {
+        val clean = response.replace(" ", "").lowercase()
+        val idx = clean.indexOf(Pids.ECM_ENGINE_RPM_R.lowercase())
+        if (idx < 0) return null
+
+        val payload = clean.substring(idx + 6) // skip "62000C"
+        val bytes = hexToBytes(payload)
+        if (bytes.size < 2) return null
+
+        val rpm = uint16(bytes, 0)?.let { it / 4.0f }
+        return BatteryData(engineRpm = rpm)
+    }
+
+    /**
+     * Parse UDS 220005 response (Coolant Temperature from ECM, header 7E0).
+     *
+     * Response: 620005 + 1 byte
+     * - Byte 0: Temperature (uint8 - 40) → °C
+     */
+    fun parseCoolantTemp(response: String): BatteryData? {
+        val clean = response.replace(" ", "").lowercase()
+        val idx = clean.indexOf(Pids.ECM_COOLANT_TEMP_R.lowercase())
+        if (idx < 0) return null
+
+        val payload = clean.substring(idx + 6) // skip "620005"
+        val bytes = hexToBytes(payload)
+        if (bytes.isEmpty()) return null
+
+        return BatteryData(coolantTemp = bytes[0] - 40.0f)
+    }
+
+    /**
+     * Parse UDS 2241C5 response (Charger Temperature 1 from HPCM2).
+     */
+    fun parseChargerTemp1(response: String): BatteryData? {
+        val clean = response.replace(" ", "").lowercase()
+        val idx = clean.indexOf(Pids.HPCM2_CHARGER_TEMP_1_R.lowercase())
+        if (idx < 0) return null
+
+        val payload = clean.substring(idx + 6) // skip "6241C5"
+        val bytes = hexToBytes(payload)
+        if (bytes.isEmpty()) return null
+
+        return BatteryData(chargerTemp1 = uint8(bytes, 0)?.let { it - 40.0f })
+    }
+
+    /**
+     * Parse UDS 2241C6 response (Charger Temperature 2 from HPCM2).
+     */
+    fun parseChargerTemp2(response: String): BatteryData? {
+        val clean = response.replace(" ", "").lowercase()
+        val idx = clean.indexOf(Pids.HPCM2_CHARGER_TEMP_2_R.lowercase())
+        if (idx < 0) return null
+
+        val payload = clean.substring(idx + 6) // skip "6241C6"
+        val bytes = hexToBytes(payload)
+        if (bytes.isEmpty()) return null
+
+        return BatteryData(chargerTemp2 = uint8(bytes, 0)?.let { it - 40.0f })
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // Private constants for direct use in parsers
+    // ═══════════════════════════════════════════════════════════
+
+    private const val HPCM2_SOC_RANGE_R = "5A90"
+    private const val HPCM2_BATTERY_R   = "5AB0"
+    private const val HPCM2_BECM_INFO_R = "5AB4"
+    private const val HPCM2_CHARGER_1_R = "5AA3"
+    private const val HPCM2_CELLS_R     = "5ADF"
+
+    // ═══════════════════════════════════════════════════════════
+    // Merge
+    // ═══════════════════════════════════════════════════════════
+
     fun merge(vararg parts: BatteryData?): BatteryData {
         var result = BatteryData()
         for (part in parts) {
@@ -344,8 +496,11 @@ object BatteryDataParser {
                 hvPower = part.hvPower ?: result.hvPower,
                 batteryTemp = part.batteryTemp ?: result.batteryTemp,
                 ambientTemp = part.ambientTemp ?: result.ambientTemp,
+                chargerTemp1 = part.chargerTemp1 ?: result.chargerTemp1,
+                chargerTemp2 = part.chargerTemp2 ?: result.chargerTemp2,
                 capacityAh = part.capacityAh ?: result.capacityAh,
                 isolationKohm = part.isolationKohm ?: result.isolationKohm,
+                batteryHealth = part.batteryHealth ?: result.batteryHealth,
                 voltage12v = part.voltage12v ?: result.voltage12v,
                 cellVoltages = part.cellVoltages.ifEmpty { result.cellVoltages },
                 cellDelta = part.cellDelta ?: result.cellDelta,
@@ -363,6 +518,7 @@ object BatteryDataParser {
                 coolantTemp = part.coolantTemp ?: result.coolantTemp,
                 oilTemp = part.oilTemp ?: result.oilTemp,
                 engineRpm = part.engineRpm ?: result.engineRpm,
+                vehicleSpeed = part.vehicleSpeed ?: result.vehicleSpeed,
                 scanTimestamp = System.currentTimeMillis(),
                 isComplete = part.isComplete || result.isComplete
             )

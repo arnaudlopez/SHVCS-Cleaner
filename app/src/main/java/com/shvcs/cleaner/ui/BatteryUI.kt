@@ -83,7 +83,7 @@ fun DashboardTab(
             ), modifier = Modifier.weight(1f))
         }
 
-        // ── Battery Health Card ──
+        // ── Battery Health Row ──
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -97,31 +97,54 @@ fun DashboardTab(
             ), modifier = Modifier.weight(1f))
         }
 
-        // ── Thermal Management ──
-        if (batteryData?.activeHeating == true || batteryData?.activeCooling == true) {
-            BatteryInfoCard("THERMAL MANAGEMENT", listOf(
-                "HEATING" to if (batteryData.activeHeating) "🔥 Active" else "Off",
-                "COOLING" to if (batteryData.activeCooling) "❄ Active" else "Off",
-                "HEATER PWR" to (batteryData.batteryHeaterPower?.let { "%.1f kW".format(it) } ?: "—"),
+        // ── Odometer + Engine Row ──
+        if (batteryData?.odometerKm != null || batteryData?.coolantTemp != null || batteryData?.vehicleSpeed != null) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                BatteryInfoCard("VÉHICULE", listOf(
+                    "ODOMÈTRE" to (batteryData.odometerKm?.let { "%.0f km".format(it) } ?: "—"),
+                    "VITESSE" to (batteryData.vehicleSpeed?.let { "%.0f km/h".format(it) } ?: "—"),
+                ), modifier = Modifier.weight(1f))
+
+                BatteryInfoCard("MOTEUR", listOf(
+                    "RPM" to (batteryData.engineRpm?.let { "%.0f".format(it) } ?: "—"),
+                    "LIQUIDE REF." to (batteryData.coolantTemp?.let { "%.0f °C".format(it) } ?: "—"),
+                ), modifier = Modifier.weight(1f))
+            }
+        }
+
+        // ── Thermal Management Card (always visible when connected) ──
+        if (isConnected && batteryData != null) {
+            BatteryInfoCard("GESTION THERMIQUE", listOf(
+                "CHAUFFAGE" to if (batteryData.activeHeating) "🔥 Actif" else "Off",
+                "REFROID." to if (batteryData.activeCooling) "❄ Actif" else "Off",
+                "PUISS. CHAUFFE" to (batteryData.batteryHeaterPower?.let { "%.1f kW".format(it) } ?: "—"),
             ))
         }
 
-        // ── Charger Card ──
-        if (batteryData?.chargerAcPower != null || batteryData?.chargerHvPower != null) {
-            BatteryInfoCard("CHARGER", listOf(
+        // ── Charger Card (always visible when connected) ──
+        if (isConnected && batteryData != null) {
+            val chargerItems = mutableListOf(
                 "AC INPUT" to (batteryData.chargerAcPower?.let { "%.1f kW".format(it) } ?: "—"),
                 "HV OUTPUT" to (batteryData.chargerHvPower?.let { "%.1f kW".format(it) } ?: "—"),
-            ))
+            )
+            if (batteryData.chargerTemp1 != null || batteryData.chargerTemp2 != null) {
+                chargerItems.add("TEMP 1" to (batteryData.chargerTemp1?.let { "%.0f °C".format(it) } ?: "—"))
+                chargerItems.add("TEMP 2" to (batteryData.chargerTemp2?.let { "%.0f °C".format(it) } ?: "—"))
+            }
+            BatteryInfoCard("CHARGEUR", chargerItems)
         }
 
         // ── Cell Summary Card ──
         if (batteryData?.cellVoltages?.isNotEmpty() == true) {
-            BatteryInfoCard("CELL SUMMARY", listOf(
-                "CELLS" to "${batteryData.cellVoltages.size}",
+            BatteryInfoCard("RÉSUMÉ CELLULES", listOf(
+                "CELLULES" to "${batteryData.cellVoltages.size}",
                 "MIN" to "%.3f V".format(batteryData.cellMin),
                 "MAX" to "%.3f V".format(batteryData.cellMax),
                 "DELTA" to "%.1f mV".format(batteryData.cellDelta),
-                "AVG" to "%.3f V".format(batteryData.cellAvg),
+                "MOYENNE" to "%.3f V".format(batteryData.cellAvg),
             ))
         }
 
@@ -219,7 +242,6 @@ fun CellVoltagesTab(
                             val cellNum = rowIdx * 4 + colIdx + 1
                             val deviation = ((voltage - min) / range).coerceIn(0f, 1f)
 
-                            // Color: green for close to max, yellow mid, red for min
                             val cellColor = when {
                                 deviation > 0.7f -> RacingGreen
                                 deviation > 0.3f -> RacingAmber
@@ -242,14 +264,12 @@ fun CellVoltagesTab(
                                 )
                             }
                         }
-                        // Pad remaining columns if row is incomplete
                         repeat(4 - row.size) {
                             Spacer(Modifier.weight(1f))
                         }
                     }
                 }
             } else {
-                // No data
                 Box(
                     modifier = Modifier.fillMaxWidth().padding(40.dp),
                     contentAlignment = Alignment.Center

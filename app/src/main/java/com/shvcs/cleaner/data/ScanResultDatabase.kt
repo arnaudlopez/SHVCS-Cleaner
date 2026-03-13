@@ -48,6 +48,14 @@ data class ScanResult(
 
     // 12V system (from ELM ATRV)
     val voltage12v: String? = null,
+
+    // ── NEW: Vehicle data (v2) ──
+    val odometerKm: Float? = null,
+    val vehicleSpeed: Float? = null,
+    val engineRpm: Float? = null,
+    val coolantTemp: Float? = null,
+    val chargerTemp1: Float? = null,
+    val chargerTemp2: Float? = null,
 )
 
 /**
@@ -101,7 +109,7 @@ interface ScanResultDao {
 /**
  * Room database for the app.
  */
-@Database(entities = [ScanResult::class], version = 1, exportSchema = false)
+@Database(entities = [ScanResult::class], version = 2, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class ScanResultDatabase : RoomDatabase() {
     abstract fun scanResultDao(): ScanResultDao
@@ -116,7 +124,9 @@ abstract class ScanResultDatabase : RoomDatabase() {
                     context.applicationContext,
                     ScanResultDatabase::class.java,
                     "shvcs_scan_results"
-                ).build()
+                )
+                    .fallbackToDestructiveMigration()
+                    .build()
                 INSTANCE = instance
                 instance
             }

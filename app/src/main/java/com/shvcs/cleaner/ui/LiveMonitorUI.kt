@@ -43,9 +43,12 @@ enum class MonitorParam(
     HV_POWER("HV Power", "kW", RacingRed, { it.hvPower }),
     BATTERY_TEMP("Battery Temp", "°C", Color(0xFFFF6B6B), { it.batteryTemp }),
     AMBIENT_TEMP("Ambient Temp", "°C", Color(0xFF6BCEFF), { it.ambientTemp }),
+    COOLANT_TEMP("Coolant Temp", "°C", Color(0xFFE74C3C), { it.coolantTemp }),
     CELL_DELTA("Cell Delta", "mV", Color(0xFFFF9F43), { it.cellDelta }),
     AC_POWER("Charger AC", "kW", Color(0xFF9B59B6), { it.chargerAcPower }),
     HV_CHARGER("Charger HV", "kW", Color(0xFF1ABC9C), { it.chargerHvPower }),
+    SPEED("Speed", "km/h", Color(0xFF3498DB), { it.vehicleSpeed }),
+    RPM("Engine RPM", "rpm", Color(0xFFE67E22), { it.engineRpm }),
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -184,6 +187,8 @@ fun LiveValuesBar(data: BatteryDataParser.BatteryData) {
         LiveValueChip("PWR", data.hvPower?.let { "%.1fkW".format(it) } ?: "—", RacingRed)
         LiveValueChip("TEMP", data.batteryTemp?.let { "%.0f°C".format(it) } ?: "—", Color(0xFFFF6B6B))
         LiveValueChip("Δ", data.cellDelta?.let { "%.0fmV".format(it) } ?: "—", RacingAmber)
+        if (data.odometerKm != null) LiveValueChip("ODO", "%.0fkm".format(data.odometerKm), Color(0xFF3498DB))
+        if (data.coolantTemp != null) LiveValueChip("COOL", "%.0f°C".format(data.coolantTemp), Color(0xFFE74C3C))
     }
 }
 

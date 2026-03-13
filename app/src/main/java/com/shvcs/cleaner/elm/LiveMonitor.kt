@@ -11,30 +11,27 @@ import kotlin.coroutines.coroutineContext
  *
  * Emits a stream of BatteryData snapshots at a configurable interval.
  * Uses quick scan (SOC + Battery Pack only) for speed, with periodic
- * full scans that include cell voltages and BECM data.
+ * full scans that include cell voltages, BECM data, and ECM data.
  *
- * Modeled after Voltage's "Live Main Loop" in LiveService.
+ * Key difference from BatteryScanner.scanBattery():
+ * - Does NOT do ATZ reset or full reconfigure
+ * - Stays on HPCM2 header (7E4) for quick loops
+ * - Only switches headers during full scans
  */
 object LiveMonitor {
 
-    /**
-     * Data point with timestamp for chart plotting.
-     */
     data class LiveDataPoint(
         val timestamp: Long = System.currentTimeMillis(),
         val data: BatteryDataParser.BatteryData
     )
 
-    /**
-     * Configuration for the live monitoring session.
-     */
     data class Config(
-        /** Polling interval in milliseconds (default 2s for quick, 10s for full) */
+        /** Polling interval for quick scans (ms) */
         val quickIntervalMs: Long = 2000L,
-        /** How many quick scans between full scans (default every 5 = ~10s) */
+        /** Full scan every N quick scans (e.g. 5 = every 10s) */
         val fullScanEveryN: Int = 5,
-        /** Maximum data points to keep in history (for charts) */
-        val maxHistorySize: Int = 300, // ~10 minutes at 2s interval
+        /** Maximum data points in history (for charts) */
+        val maxHistorySize: Int = 300,
     )
 
     interface Listener {
@@ -45,18 +42,10 @@ object LiveMonitor {
     /**
      * Start a live monitoring flow.
      *
-     * Emits [LiveDataPoint] items continuously until the coroutine is cancelled.
-     * Uses quick scans (SOC + HV) with periodic full scans (cells + BECM).
-     *
-     * Usage:
-     * ```
-     * val job = viewModelScope.launch {
-     *     LiveMonitor.start(elm, config, listener).collect { point ->
-     *         // Update UI with point.data
-     *     }
-     * }
-     * // To stop: job.cancel()
-     * ```
+     * Configures ELM once at start, then alternates between quick
+     * and full scans. Does NOT call BatteryScanner.scanBattery()
+     * (which does full reconfigure); instead uses quickScan() for
+     * fast polling and scanBattery() only for periodic full reads.
      */
     fun start(
         elm: ElmWifiManager,
@@ -69,10 +58,9 @@ object LiveMonitor {
         listener.onLog("═══ LIVE MONITORING STARTED ═══")
         listener.onLog("Quick interval: ${config.quickIntervalMs}ms | Full scan every ${config.fullScanEveryN} cycles")
 
-        // Create a silent scanner listener (logs go to our listener)
+        // Silent scanner listener
         val scannerListener = object : BatteryScanner.Listener {
             override fun onLog(message: String) {
-                // Only log important messages to avoid spam
                 if (message.startsWith("  ✓") || message.startsWith("  ✗") || message.startsWith("✅")) {
                     listener.onLog(message)
                 }
@@ -80,6 +68,14 @@ object LiveMonitor {
             override fun onProgress(step: Int, totalSteps: Int, description: String) {}
             override fun onBatteryData(data: BatteryDataParser.BatteryData) {}
             override fun onError(error: String) { listener.onError(error) }
+        }
+
+        // Configure ELM once at start (lightweight — no ATZ)
+        listener.onLog("► Setting up for live monitoring...")
+        val configOk = configureForLive(elm, listener)
+        if (!configOk) {
+            listener.onError("Failed to configure ELM for live monitoring")
+            return@flow
         }
 
         // Initial full scan to get baseline
@@ -91,6 +87,10 @@ object LiveMonitor {
             listener.onLog("✓ Baseline captured")
         }
 
+        // Set header to HPCM2 for quick polling loop
+        elm.sendCommand("ATSH7E4", timeoutMs = 2000L)
+        delay(100)
+
         // Polling loop
         while (coroutineContext.isActive) {
             delay(config.quickIntervalMs)
@@ -100,28 +100,45 @@ object LiveMonitor {
 
             try {
                 if (isFullScan) {
-                    // Full scan — includes cells + BECM
+                    // Full scan — re-reads all modules including cells
                     val fullData = BatteryScanner.scanBattery(elm, scannerListener)
                     if (fullData != null) {
                         lastFullData = fullData
                         emit(LiveDataPoint(data = fullData))
                     }
+                    // Restore header for quick loop
+                    elm.sendCommand("ATSH7E4", timeoutMs = 2000L)
+                    delay(100)
                 } else {
-                    // Quick scan — SOC + HV only (fast)
+                    // Quick scan — SOC + HV only, stays on 7E4
                     val quickData = BatteryScanner.quickScan(elm, scannerListener)
                     if (quickData != null) {
-                        // Merge with last full data to keep cell info
                         val merged = BatteryDataParser.merge(lastFullData, quickData)
                         emit(LiveDataPoint(data = merged))
                     }
                 }
             } catch (e: Exception) {
                 listener.onError("Live scan error: ${e.message}")
-                // Don't stop on error, try again next cycle
                 delay(1000)
             }
         }
 
         listener.onLog("═══ LIVE MONITORING STOPPED ═══")
+    }
+
+    /**
+     * Lightweight one-time configure for monitoring — NO ATZ.
+     */
+    private suspend fun configureForLive(elm: ElmWifiManager, listener: Listener): Boolean {
+        val commands = listOf("ATE0", "ATL0", "ATS0", "ATH0", "ATSP6", "ATCAF1")
+        for (cmd in commands) {
+            val result = elm.sendCommand(cmd, timeoutMs = 2000L)
+            result.onFailure { e ->
+                listener.onError("Config failed: $cmd — ${e.message}")
+                return false
+            }
+            delay(50)
+        }
+        return true
     }
 }
