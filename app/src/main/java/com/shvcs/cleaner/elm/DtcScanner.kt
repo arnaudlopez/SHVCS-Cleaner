@@ -294,20 +294,28 @@ object DtcScanner {
                     }
                     clean.contains("7f14") -> {
                         // Negative response — check sub-function
-                        if (clean.contains("7f1433")) {
-                            listener.onLog("  ✗ Security access required but authentication failed")
-                            listener.onError("Security access denied on $moduleName")
-                        } else if (clean.contains("7f1431")) {
-                            listener.onLog("  ✗ Request out of range")
-                            listener.onError("Clear not supported on $moduleName")
-                        } else if (clean.contains("7f1422")) {
-                            listener.onLog("  ✗ Conditions not correct (vehicle may need to be in specific state)")
-                            listener.onError("Conditions not met for $moduleName")
-                        } else {
-                            listener.onLog("  ✗ Clear rejected by ECU (NRC: ${clean.substringAfter("7f14").take(2)})")
-                            listener.onError("Clear rejected on $moduleName")
+                        val nrc = clean.substringAfter("7f14").take(2)
+                        when {
+                            nrc == "33" -> {
+                                listener.onLog("  ✗ Security access required but authentication failed")
+                                listener.onError("Security access denied on $moduleName")
+                                return false
+                            }
+                            nrc == "22" -> {
+                                listener.onLog("  ✗ Conditions not correct (vehicle may need to be in specific state)")
+                                listener.onError("Conditions not met for $moduleName")
+                                return false
+                            }
+                            nrc == "11" || nrc == "31" -> {
+                                // Service not supported or request out of range → try Mode 04
+                                listener.onLog("  ⚠ Service 14 not supported (NRC: $nrc), trying OBD-II Mode 04...")
+                                return tryGenericClear(elm, listener)
+                            }
+                            else -> {
+                                listener.onLog("  ✗ Clear rejected by ECU (NRC: $nrc), trying Mode 04...")
+                                return tryGenericClear(elm, listener)
+                            }
                         }
-                        return false
                     }
                     clean.contains("nodata") -> {
                         listener.onLog("  ⚠ No response — module may not support clear")
