@@ -284,37 +284,19 @@ object DtcScanner {
                 listener.onLog("")
                 listener.onLog("── HV Condition Clear (GM AE Service) ──")
 
-                // AE command 1: Clear P0A46 (HV Battery System Performance)
-                listener.onLog("► AEFC0200004600 (Clear HV P0A46)")
-                elm.sendCommand("AEFC0200004600", timeoutMs = 5000L).onSuccess { resp ->
-                    val clean = resp.replace(" ", "").replace("\r", "").replace("\n", "").lowercase()
-                    listener.onLog("  ◄ ${resp.trim()}")
-                    if (clean.contains("eefc")) {
-                        listener.onLog("  ✓ P0A46 condition cleared")
-                    } else if (clean.contains("7fae")) {
-                        val nrc = clean.substringAfter("7fae").take(2)
-                        listener.onLog("  ⚠ P0A46 clear NRC: $nrc (may not be active)")
-                    }
-                }.onFailure { e ->
-                    listener.onLog("  ⚠ P0A46 clear error: ${e.message}")
-                }
+                val p0a46 = sendAeClearCommand(elm, "AEFC0200004600", "P0A46", listener)
                 kotlinx.coroutines.delay(500)
+                val p0a49 = sendAeClearCommand(elm, "AEFC0200004900", "P0A49", listener)
 
-                // AE command 2: Clear P0A49 (HV Battery System)
-                listener.onLog("► AEFC0200004900 (Clear HV P0A49)")
-                elm.sendCommand("AEFC0200004900", timeoutMs = 5000L).onSuccess { resp ->
-                    val clean = resp.replace(" ", "").replace("\r", "").replace("\n", "").lowercase()
-                    listener.onLog("  ◄ ${resp.trim()}")
-                    if (clean.contains("eefc")) {
-                        listener.onLog("  ✓ P0A49 condition cleared")
-                    } else if (clean.contains("7fae")) {
-                        val nrc = clean.substringAfter("7fae").take(2)
-                        listener.onLog("  ⚠ P0A49 clear NRC: $nrc (may not be active)")
-                    }
-                }.onFailure { e ->
-                    listener.onLog("  ⚠ P0A49 clear error: ${e.message}")
+                // AE commands are the actual clear for HPCM2
+                // Service 14 is not supported on this module (returns NO DATA)
+                if (p0a46 || p0a49) {
+                    listener.onLog("  ✓ HV condition clear completed on HPCM2")
+                    return true
+                } else {
+                    listener.onLog("  ⚠ No HV conditions were cleared (may not be active)")
+                    return false
                 }
-                kotlinx.coroutines.delay(500)
             }
 
             // ── Send UDS clear command ──
@@ -529,6 +511,60 @@ object DtcScanner {
             return false
         }
 
+        return false
+    }
+
+    /**
+     * Send a GM AE clear command with NRC 0x78 (responsePending) handling.
+     *
+     * @param command The AE command (e.g. "AEFC0200004600")
+     * @param dtcLabel Human-readable label (e.g. "P0A46")
+     * @return true if the condition was cleared (EEFC response)
+     */
+    private suspend fun sendAeClearCommand(
+        elm: ElmWifiManager,
+        command: String,
+        dtcLabel: String,
+        listener: Listener
+    ): Boolean {
+        listener.onLog("► $command (Clear HV $dtcLabel)")
+
+        val result = elm.sendCommand(command, timeoutMs = 5000L)
+        result.onSuccess { resp ->
+            var clean = resp.replace(" ", "").replace("\r", "").replace("\n", "").lowercase()
+            listener.onLog("  ◄ ${resp.trim()}")
+
+            // NRC 0x78 = responsePending → ECU is processing, wait for final response
+            if (clean.contains("7fae78")) {
+                listener.onLog("  ⏳ ECU processing $dtcLabel (NRC 0x78)... waiting 5s")
+                kotlinx.coroutines.delay(5000)
+
+                // Re-read the final response
+                val finalResult = elm.sendCommand("", timeoutMs = 8000L)
+                finalResult.onSuccess { finalResp ->
+                    clean = finalResp.replace(" ", "").replace("\r", "").replace("\n", "").lowercase()
+                    listener.onLog("  ◄ ${finalResp.trim()}")
+                }
+            }
+
+            return when {
+                clean.contains("eefc") -> {
+                    listener.onLog("  ✓ $dtcLabel condition cleared")
+                    true
+                }
+                clean.contains("7fae") -> {
+                    val nrc = clean.substringAfter("7fae").take(2)
+                    listener.onLog("  ⚠ $dtcLabel NRC: $nrc (condition may not be active)")
+                    false
+                }
+                else -> {
+                    listener.onLog("  ⚠ $dtcLabel unexpected response")
+                    false
+                }
+            }
+        }.onFailure { e ->
+            listener.onLog("  ⚠ $dtcLabel error: ${e.message}")
+        }
         return false
     }
 
