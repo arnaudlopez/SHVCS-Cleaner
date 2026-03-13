@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:gravity="center" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <ScrollView android:layout_width="match_parent" android:layout_height="match_parent">
+        <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content">
+            <LinearLayout android:orientation="horizontal" android:padding="10.0dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <Button android:id="@id/sync" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sync time" android:layout_weight="1.0" app:icon="@drawable/clock" style="?materialIconButtonOutlinedStyle" />
+                <Button android:id="@id/restartCluster" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Restart Cluster" android:layout_weight="1.0" app:icon="@drawable/sync_24px" style="?materialIconButtonOutlinedStyle" />
+            </LinearLayout>
+            <LinearLayout android:orientation="horizontal" android:padding="10.0dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <Button android:id="@id/restartHmi" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Restart HMI" android:layout_weight="1.0" app:icon="@drawable/sync_24px" style="?materialIconButtonOutlinedStyle" />
+                <Button android:id="@id/restartRadio" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Restart Radio" android:layout_weight="1.0" app:icon="@drawable/sync_24px" style="?materialIconButtonOutlinedStyle" />
+            </LinearLayout>
+            <com.google.android.material.divider.MaterialDivider android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginVertical="10.0dp" />
+            <LinearLayout android:orientation="horizontal" android:padding="10.0dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <Button android:id="@id/rearCamOn" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Rear Camera ON" android:layout_weight="1.0" style="?materialIconButtonOutlinedStyle" />
+                <Button android:id="@id/rearCamOff" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Rear Camera OFF" android:layout_weight="1.0" style="?materialIconButtonOutlinedStyle" />
+            </LinearLayout>
+            <TextView android:textSize="12.0dp" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Note: this feature may not work on Ampera / Volt Gen 1" android:textAlignment="center" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

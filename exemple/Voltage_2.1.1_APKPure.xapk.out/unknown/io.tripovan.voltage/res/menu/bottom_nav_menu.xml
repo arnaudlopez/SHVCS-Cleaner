@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:icon="@drawable/ic_dashboard_black_24dp" android:id="@id/navigation_dashboard" android:title="@string/title_dashboard" />
+    <item android:icon="@drawable/balance_24px" android:id="@id/navigation_compare" android:title="@string/title_compare" />
+    <item android:icon="@drawable/wishlist_heart_24" android:id="@id/navigation_health" android:title="@string/title_health" />
+    <item android:icon="@drawable/ic_scan" android:id="@id/navigation_expert" android:title="@string/title_expert" />
+    <item android:icon="@drawable/sync_24px" android:id="@id/navigation_live" android:title="@string/title_live" />
+    <item android:icon="@drawable/outline_bolt_24" android:id="@id/navigation_charge" android:title="@string/title_charge" />
+    <item android:icon="@drawable/check_engine" android:id="@id/navigation_engine" android:title="@string/title_engine" />
+    <item android:icon="@drawable/ic_chart" android:id="@id/navigation_history" android:title="@string/title_notifications" />
+    <item android:icon="@drawable/tune_24px" android:id="@id/navigation_advanced_control" android:title="@string/title_advanced_control" />
+    <item android:icon="@drawable/ic_dashboard" android:id="@id/navigation_weak_cells" android:title="@string/title_weak_cells" />
+    <item android:icon="@drawable/ic_settings" android:id="@id/navigation_settings" android:title="@string/title_settings" />
+</menu>

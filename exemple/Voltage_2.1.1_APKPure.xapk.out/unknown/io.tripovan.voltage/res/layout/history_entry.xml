@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingHorizontal="15.0dp"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <LinearLayout android:gravity="center_vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingVertical="2.0dp">
+        <TextView android:textSize="12.0sp" android:id="@id/date" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_weight="0.8" />
+        <TextView android:textSize="12.0sp" android:id="@id/odo" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_weight="1.0" />
+        <TextView android:textSize="12.0sp" android:id="@id/capacity" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_weight="1.0" />
+        <TextView android:textSize="12.0sp" android:id="@id/resistance" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_weight="1.0" />
+        <LinearLayout android:gravity="center" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_weight="1.0">
+            <ImageView android:id="@id/delete" android:visibility="invisible" android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/delete" android:scaleX="0.4" android:scaleY="0.4" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

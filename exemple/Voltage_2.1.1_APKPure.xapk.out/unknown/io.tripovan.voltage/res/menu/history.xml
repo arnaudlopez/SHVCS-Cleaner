@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:icon="@drawable/mode_off_on_24px" android:id="@id/liveButton" android:orderInCategory="100" android:title="Start" app:showAsAction="always" />
+    <item android:icon="@drawable/ic_dashboard" android:id="@id/exportCsv" android:title="Export History Data" />
+    <item android:icon="@drawable/ic_dashboard" android:id="@id/importCsv" android:title="Import History Data" />
+    <item android:id="@id/span_1mo" android:title="Last 1 month" />
+    <item android:id="@id/span_3mo" android:title="Last 3 months" />
+    <item android:id="@id/span_6mo" android:title="Last 6 months" />
+    <item android:id="@id/span_year" android:title="Last year" />
+    <item android:id="@id/span_all" android:title="All time" />
+</menu>

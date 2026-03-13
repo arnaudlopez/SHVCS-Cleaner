@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent" android:layout_weight="1.0">
+        <com.google.android.material.card.MaterialCardView android:layout_gravity="center_vertical" android:layout_width="match_parent" android:layout_height="match_parent" android:backgroundTintMode="multiply" android:layout_marginHorizontal="10.0dp" android:layout_marginVertical="7.0dp" app:strokeWidth="0.20000005dp">
+            <LinearLayout android:orientation="vertical" android:background="@drawable/card_gradient" android:layout_width="match_parent" android:layout_height="match_parent" android:paddingVertical="20.0dp">
+                <LinearLayout android:layout_gravity="center" android:orientation="horizontal" android:padding="5.0dp" android:layout_width="match_parent" android:layout_height="wrap_content" android:baselineAligned="false">
+                    <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_weight="1.0" android:paddingHorizontal="15.0dp">
+                        <TextView android:textSize="12.0sp" android:textColor="@color/dark_yellow" android:layout_gravity="center" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ENGINE RPM" android:textAllCaps="true" />
+                        <LinearLayout android:layout_gravity="center" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="20.0dp">
+                            <TextView android:textSize="30.0sp" android:textStyle="bold" android:id="@id/engineRPMTv" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                        </LinearLayout>
+                    </LinearLayout>
+                    <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_weight="1.0" android:paddingHorizontal="15.0dp">
+                        <TextView android:textSize="12.0sp" android:textColor="@color/dark_yellow" android:layout_gravity="center" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="AVG CELL VOLTAGE" android:textAllCaps="true" />
+                        <LinearLayout android:layout_gravity="center" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="20.0dp">
+                            <TextView android:textSize="30.0sp" android:textStyle="bold" android:id="@id/avgCellTv" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                            <TextView android:textSize="14.0sp" android:textStyle="normal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=" V" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+                <LinearLayout android:layout_gravity="center" android:orientation="horizontal" android:padding="5.0dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+                    <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_weight="1.0" android:paddingHorizontal="10.0dp">
+                        <TextView android:textSize="12.0sp" android:textColor="@color/dark_yellow" android:layout_gravity="center" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="delta" android:textAllCaps="true" />
+                        <LinearLayout android:layout_gravity="center" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="20.0dp">
+                            <TextView android:textSize="30.0sp" android:textStyle="bold" android:id="@id/deltaTv" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                            <TextView android:textSize="14.0sp" android:textStyle="normal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=" mV" />
+                        </LinearLayout>
+                    </LinearLayout>
+                    <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_weight="1.0" android:paddingHorizontal="10.0dp">
+                        <TextView android:textSize="12.0sp" android:textColor="@color/dark_yellow" android:layout_gravity="center" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="min cell voltage" android:textAllCaps="true" />
+                        <LinearLayout android:layout_gravity="center" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="20.0dp">
+                            <TextView android:textSize="30.0sp" android:textStyle="bold" android:id="@id/min_cell_tv" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                            <TextView android:textSize="14.0sp" android:textStyle="normal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=" V" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+                <LinearLayout android:layout_gravity="center" android:orientation="horizontal" android:padding="5.0dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+                    <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_weight="1.0" android:paddingHorizontal="10.0dp">
+                        <TextView android:textSize="12.0sp" android:textColor="@color/dark_yellow" android:layout_gravity="center" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="State of charge" android:textAllCaps="true" />
+                        <LinearLayout android:layout_gravity="center" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="20.0dp">
+                            <TextView android:textSize="30.0sp" android:textStyle="bold" android:id="@id/socTv" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                            <TextView android:textSize="14.0sp" android:textStyle="normal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=" %" />
+                        </LinearLayout>
+                    </LinearLayout>
+                    <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_weight="1.0" android:paddingHorizontal="10.0dp">
+                        <TextView android:textSize="12.0sp" android:textColor="@color/dark_yellow" android:layout_gravity="center" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="State of charge real" android:textAllCaps="true" />
+                        <LinearLayout android:layout_gravity="center" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="20.0dp">
+                            <TextView android:textSize="30.0sp" android:textStyle="bold" android:id="@id/socRawTv" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                            <TextView android:textSize="14.0sp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=" %" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+                <LinearLayout android:layout_gravity="center" android:orientation="horizontal" android:padding="5.0dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+                    <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_weight="1.0" android:paddingHorizontal="10.0dp">
+                        <TextView android:textSize="12.0sp" android:textColor="@color/dark_yellow" android:layout_gravity="center" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="EV efficiency" android:textAllCaps="true" />
+                        <LinearLayout android:layout_gravity="center" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="20.0dp">
+                            <TextView android:textSize="30.0sp" android:textStyle="bold" android:id="@id/evEfficiencyTv" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                            <TextView android:textSize="10.0sp" android:textStyle="normal" android:id="@id/evEfficiencyUnit" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                        </LinearLayout>
+                    </LinearLayout>
+                    <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_weight="1.0" android:paddingHorizontal="10.0dp">
+                        <TextView android:textSize="12.0sp" android:textColor="@color/dark_yellow" android:layout_gravity="center" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Fuel efficiency" android:textAllCaps="true" />
+                        <LinearLayout android:layout_gravity="center" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="20.0dp">
+                            <TextView android:textSize="30.0sp" android:textStyle="bold" android:id="@id/fuelEfficiencyTv" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                            <TextView android:textSize="10.0sp" android:id="@id/fuelEfficiencyUnitTv" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+        <include android:id="@id/premiumOverlay" android:layout_width="match_parent" android:layout_height="match_parent" layout="@layout/layout_premium_overlay" />
+    </FrameLayout>
+    <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="match_parent" android:layout_weight="1.0" android:backgroundTintMode="multiply" android:layout_marginHorizontal="10.0dp" android:layout_marginVertical="7.0dp" app:strokeWidth="0.20000005dp">
+        <LinearLayout android:orientation="vertical" android:background="@drawable/card_gradient" android:layout_width="match_parent" android:layout_height="match_parent" android:paddingVertical="10.0dp">
+            <LinearLayout android:orientation="horizontal" android:id="@id/buttons_container" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_weight="1.0" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+</LinearLayout>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:gravity="center" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <ScrollView android:layout_width="match_parent" android:layout_height="match_parent">
+        <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content">
+            <com.google.android.material.divider.MaterialDivider android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginVertical="10.0dp" />
+            <LinearLayout android:orientation="horizontal" android:padding="10.0dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <Button android:id="@id/resetLifetimeCharge" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Reset lifetime charge" android:layout_weight="1.0" style="?materialIconButtonOutlinedStyle" />
+                <Button android:id="@id/reset_number_of_charges" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Reset # of charges" android:layout_weight="1.0" style="?materialIconButtonOutlinedStyle" />
+            </LinearLayout>
+            <LinearLayout android:orientation="horizontal" android:padding="10.0dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <Button android:id="@id/resetFuelLifetime" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Reset Fuel Economy" android:layout_weight="1.0" style="?materialIconButtonOutlinedStyle" />
+                <Button android:id="@id/capacityRelearn" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Capacity Relearn" android:layout_weight="1.0" style="?materialIconButtonOutlinedStyle" />
+            </LinearLayout>
+            <LinearLayout android:orientation="horizontal" android:padding="10.0dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <Button android:id="@id/unlockHv" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="HV Battery Unlock\nP1FFF, P0AFA..." android:layout_weight="1.0" app:icon="@drawable/outline_bolt_24" style="?materialIconButtonOutlinedStyle" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

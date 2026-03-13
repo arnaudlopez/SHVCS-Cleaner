@@ -55,6 +55,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 import com.shvcs.cleaner.ui.DashboardTab
 import com.shvcs.cleaner.ui.CellVoltagesTab
+import com.shvcs.cleaner.ui.LiveMonitorTab
 import com.shvcs.cleaner.elm.BatteryDataParser
 
 class MainActivity : ComponentActivity() {
@@ -94,7 +95,9 @@ class MainActivity : ComponentActivity() {
                         onSendRawCommand = { cmd, hdr -> viewModel.sendRawCommand(cmd, hdr) },
                         onClearConsole = { viewModel.clearConsoleHistory() },
                         onScanBattery = { viewModel.scanBattery() },
-                        onSelectTab = { viewModel.selectTab(it) }
+                        onSelectTab = { viewModel.selectTab(it) },
+                        onStartLive = { viewModel.startLiveMonitoring() },
+                        onStopLive = { viewModel.stopLiveMonitoring() }
                     )
                 }
             }
@@ -121,7 +124,9 @@ fun MainScreen(
     onSendRawCommand: (String, String?) -> Unit,
     onClearConsole: () -> Unit,
     onScanBattery: () -> Unit,
-    onSelectTab: (Int) -> Unit
+    onSelectTab: (Int) -> Unit,
+    onStartLive: () -> Unit,
+    onStopLive: () -> Unit
 ) {
     // Show key input dialog when awaiting key
     if (state.connectionState == ConnectionState.AWAITING_KEY) {
@@ -136,7 +141,7 @@ fun MainScreen(
         )
     }
 
-    val tabLabels = listOf("⚡ Battery", "🔋 Cells", "⚠ DTCs", "⌨ Console", "🔧 SHVCS")
+    val tabLabels = listOf("⚡ Battery", "🔋 Cells", "📊 Live", "⚠ DTCs", "⌨ Console", "🔧 SHVCS")
 
     Column(
         modifier = Modifier
@@ -171,6 +176,16 @@ fun MainScreen(
                     )
                 }
                 2 -> {
+                    // Live Monitoring tab
+                    LiveMonitorTab(
+                        isMonitoring = state.isMonitoring,
+                        liveHistory = state.liveHistory,
+                        latestData = state.batteryData,
+                        onStart = onStartLive,
+                        onStop = onStopLive
+                    )
+                }
+                3 -> {
                     // DTCs tab
                     Column(
                         modifier = Modifier
@@ -188,7 +203,7 @@ fun MainScreen(
                         Spacer(Modifier.height(4.dp))
                     }
                 }
-                3 -> {
+                4 -> {
                     // Console tab
                     Column(
                         modifier = Modifier
@@ -202,7 +217,6 @@ fun MainScreen(
                             onSend = onSendRawCommand,
                             onClear = onClearConsole
                         )
-                        // ECU Discovery
                         if (state.discoveredEcus.isNotEmpty()) {
                             InfoCard("DISCOVERED ECUs", Modifier.fillMaxWidth(),
                                 state.discoveredEcus.map { ecu ->
@@ -212,8 +226,8 @@ fun MainScreen(
                         Spacer(Modifier.height(4.dp))
                     }
                 }
-                4 -> {
-                    // SHVCS Clear tab (original main screen content)
+                5 -> {
+                    // SHVCS Clear tab
                     Column(
                         modifier = Modifier
                             .weight(1f)
@@ -221,8 +235,6 @@ fun MainScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Spacer(Modifier.height(4.dp))
-
-                        // Gauge
                         Box(
                             modifier = Modifier.fillMaxWidth().height(200.dp),
                             contentAlignment = Alignment.Center
@@ -233,8 +245,6 @@ fun MainScreen(
                                 stepText = state.progressStep
                             )
                         }
-
-                        // Vehicle Info Cards
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -256,16 +266,11 @@ fun MainScreen(
                                 )
                             )
                         }
-
                         ActionButtons(state, onConnect, onDisconnect, onStartClear)
-
                         Spacer(Modifier.height(4.dp))
                     }
-
-                    // Log Panel pinned at bottom
                     LogPanel(logs = state.logs, onClear = onClearLogs,
                         modifier = Modifier.heightIn(min = 100.dp, max = 200.dp))
-
                     Spacer(Modifier.height(8.dp))
                 }
             }

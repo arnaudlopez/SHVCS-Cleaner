@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:gravity="center" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <Button android:id="@id/trunk" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_margin="10.0dp" android:text="Open Trunk" app:icon="@drawable/lock_open_alt_24" style="?materialIconButtonOutlinedStyle" />
+    <LinearLayout android:orientation="horizontal" android:padding="10.0dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+        <Button android:id="@id/lockIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Lock Doors" android:layout_weight="1.0" app:icon="@drawable/lock_24" style="?materialIconButtonOutlinedStyle" />
+        <Button android:id="@id/unlockIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Unlock Doors" android:layout_weight="1.0" app:icon="@drawable/lock_open_alt_24" style="?materialIconButtonOutlinedStyle" />
+    </LinearLayout>
+    <LinearLayout android:orientation="horizontal" android:padding="10.0dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+        <Button android:id="@id/windowsUp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Windows up" android:layout_weight="1.0" app:icon="@drawable/arrow_upward_24px" style="?materialIconButtonOutlinedStyle" />
+        <Button android:id="@id/windowsDown" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Windows down" android:layout_weight="1.0" app:icon="@drawable/arrow_downward_24px" style="?materialIconButtonOutlinedStyle" />
+    </LinearLayout>
+    <LinearLayout android:orientation="vertical" android:visibility="gone" android:layout_width="match_parent" android:layout_height="wrap_content">
+        <com.google.android.material.divider.MaterialDivider android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <Button android:id="@id/remoteStart" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_margin="10.0dp" android:text="Remote Start" app:icon="@drawable/mode_dual_24px" style="?materialIconButtonOutlinedStyle" />
+        <TextView android:textSize="12.0sp" android:id="@id/attemptsText" android:layout_width="match_parent" android:layout_height="wrap_content" android:textAlignment="center" />
+    </LinearLayout>
+</LinearLayout>

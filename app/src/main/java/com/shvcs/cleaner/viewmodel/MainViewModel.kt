@@ -11,6 +11,8 @@ import com.shvcs.cleaner.elm.DtcParser
 import com.shvcs.cleaner.elm.SeedKeyGenerator
 import com.shvcs.cleaner.elm.BatteryDataParser
 import com.shvcs.cleaner.elm.BatteryScanner
+import com.shvcs.cleaner.elm.LiveMonitor
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -57,7 +59,11 @@ data class AppState(
     val batteryData: BatteryDataParser.BatteryData? = null,
     /** Whether a battery scan is in progress */
     val isBatteryScanLoading: Boolean = false,
-    /** Currently selected navigation tab (0=Dashboard, 1=Cells, 2=DTCs, 3=Console, 4=SHVCS) */
+    /** Whether live monitoring is active */
+    val isMonitoring: Boolean = false,
+    /** Live monitoring data history (for charts) */
+    val liveHistory: List<LiveMonitor.LiveDataPoint> = emptyList(),
+    /** Currently selected navigation tab (0=Dashboard, 1=Cells, 2=Live, 3=DTCs, 4=Console, 5=SHVCS) */
     val selectedTab: Int = 0,
 )
 
@@ -66,6 +72,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val elm = ElmWifiManager()
     private val _state = MutableStateFlow(AppState())
     val state: StateFlow<AppState> = _state.asStateFlow()
+    private var liveJob: Job? = null
 
     private val prefs = application.getSharedPreferences("shvcs_settings", Context.MODE_PRIVATE)
 
@@ -391,6 +398,57 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 progressStep = if (_state.value.batteryData != null) "Battery scan complete" else "Battery scan failed"
             )
         }
+    }
+
+    /**
+     * Start live monitoring — polls battery data continuously.
+     */
+    fun startLiveMonitoring() {
+        if (_state.value.connectionState == ConnectionState.DISCONNECTED) return
+        if (_state.value.isMonitoring) return
+
+        _state.value = _state.value.copy(
+            isMonitoring = true,
+            liveHistory = emptyList(),
+            logs = _state.value.logs + "" + "━━━ STARTING LIVE MONITORING ━━━"
+        )
+
+        val listener = object : LiveMonitor.Listener {
+            override fun onLog(message: String) {
+                _state.value = _state.value.copy(logs = _state.value.logs + message)
+            }
+            override fun onError(error: String) {
+                _state.value = _state.value.copy(
+                    logs = _state.value.logs + "✗ Live error: $error"
+                )
+            }
+        }
+
+        liveJob = viewModelScope.launch {
+            LiveMonitor.start(elm, LiveMonitor.Config(), listener).collect { point ->
+                val history = _state.value.liveHistory.toMutableList()
+                history.add(point)
+                // Trim to max size
+                while (history.size > 300) history.removeAt(0)
+
+                _state.value = _state.value.copy(
+                    batteryData = point.data,
+                    liveHistory = history
+                )
+            }
+        }
+    }
+
+    /**
+     * Stop live monitoring.
+     */
+    fun stopLiveMonitoring() {
+        liveJob?.cancel()
+        liveJob = null
+        _state.value = _state.value.copy(
+            isMonitoring = false,
+            logs = _state.value.logs + "━━━ LIVE MONITORING STOPPED ━━━"
+        )
     }
 
     /**

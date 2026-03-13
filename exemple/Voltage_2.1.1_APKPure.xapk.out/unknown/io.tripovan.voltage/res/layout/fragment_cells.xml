@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="vertical" android:id="@id/batteryinfo_container" android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <ScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_weight="1.0">
+        <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content">
+            <com.google.android.material.card.MaterialCardView android:id="@id/mainTextCard" android:layout_width="match_parent" android:layout_height="wrap_content" android:backgroundTint="@color/md_theme_dark_secondaryContainer" android:backgroundTintMode="multiply" android:layout_marginHorizontal="10.0sp" android:layout_marginVertical="10.0sp" style="?materialCardViewFilledStyle">
+                <LinearLayout android:orientation="vertical" android:background="@drawable/card_gradient" android:layout_width="match_parent" android:layout_height="match_parent" android:paddingHorizontal="20.0sp" android:paddingVertical="10.0sp">
+                    <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="match_parent">
+                        <TextView android:textSize="12.0sp" android:textColor="@color/material_on_background_emphasis_medium" android:gravity="start" android:layout_gravity="center_horizontal" android:id="@id/model" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="1.0" />
+                        <TextView android:textSize="12.0sp" android:textColor="@color/material_on_background_emphasis_medium" android:gravity="end" android:layout_gravity="center_horizontal" android:id="@id/date" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="1.0" />
+                    </LinearLayout>
+                    <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="match_parent">
+                        <LinearLayout android:layout_gravity="start" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_weight="1.0">
+                            <TextView android:textSize="8.0sp" android:textColor="@color/dark_yellow" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="15.0sp" android:text="ODOMETER" />
+                            <TextView android:textSize="12.0sp" android:textColor="@color/md_theme_dark_onSurface" android:id="@id/odometer" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                        </LinearLayout>
+                        <LinearLayout android:layout_gravity="center_horizontal" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_weight="1.0">
+                            <TextView android:textSize="8.0sp" android:textColor="@color/dark_yellow" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="15.0sp" android:text="LIFETIME CHARGE" />
+                            <TextView android:textSize="12.0sp" android:textColor="@color/md_theme_dark_onSurface" android:id="@id/lifetimeKwh" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                        </LinearLayout>
+                        <LinearLayout android:layout_gravity="end" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_weight="1.0">
+                            <TextView android:textSize="8.0sp" android:textColor="@color/dark_yellow" android:id="@id/odometer_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="15.0sp" android:text="LAST CHARGE" />
+                            <TextView android:textSize="8.0sp" android:textColor="@color/md_theme_dark_onSurface" android:id="@id/lastKwh" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                        </LinearLayout>
+                    </LinearLayout>
+                    <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="match_parent">
+                        <LinearLayout android:layout_gravity="start" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_weight="1.0">
+                            <TextView android:textSize="8.0sp" android:textColor="@color/dark_yellow" android:id="@id/capacity_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="15.0sp" android:text="CAPACITY" />
+                            <TextView android:textSize="12.0sp" android:textColor="@color/md_theme_dark_onSurface" android:id="@id/capacity" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                        </LinearLayout>
+                        <LinearLayout android:layout_gravity="center" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_weight="1.0">
+                            <TextView android:textSize="8.0sp" android:textColor="@color/dark_yellow" android:id="@id/capacity_factory_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="15.0sp" android:text="FACTORY %" />
+                            <TextView android:textSize="12.0sp" android:textColor="@color/md_theme_dark_onSurface" android:id="@id/factory" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                        </LinearLayout>
+                        <LinearLayout android:layout_gravity="end" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_weight="1.0">
+                            <TextView android:textSize="8.0sp" android:textColor="@color/dark_yellow" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="15.0sp" android:text="CHARGES #" />
+                            <TextView android:textSize="12.0sp" android:textColor="@color/md_theme_dark_onSurface" android:id="@id/cycles" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                        </LinearLayout>
+                    </LinearLayout>
+                    <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="match_parent">
+                        <LinearLayout android:layout_gravity="start" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_weight="1.0">
+                            <TextView android:textSize="8.0sp" android:textColor="@color/dark_yellow" android:id="@id/int_resistance_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="15.0sp" android:text="INTERNAL RESISTANCE" />
+                            <TextView android:textSize="12.0sp" android:textColor="@color/md_theme_dark_onSurface" android:id="@id/int_resistance" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                        </LinearLayout>
+                        <LinearLayout android:layout_gravity="center_horizontal" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_weight="1.0">
+                            <TextView android:textSize="8.0sp" android:textColor="@color/dark_yellow" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="15.0sp" android:text="BATTERY TEMP" />
+                            <TextView android:textSize="12.0sp" android:textColor="@color/md_theme_dark_onSurface" android:id="@id/battery_temp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                        </LinearLayout>
+                        <LinearLayout android:layout_gravity="end" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_weight="1.0">
+                            <TextView android:textSize="8.0sp" android:textColor="@color/dark_yellow" android:id="@id/isolation_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="15.0sp" android:text="ISOLATION" />
+                            <TextView android:textSize="12.0sp" android:textColor="@color/md_theme_dark_onSurface" android:id="@id/isolation" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                        </LinearLayout>
+                    </LinearLayout>
+                    <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="match_parent">
+                        <LinearLayout android:layout_gravity="start" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_weight="1.0">
+                            <TextView android:textSize="8.0sp" android:textColor="@color/dark_yellow" android:id="@id/soc_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="15.0sp" android:text="STATE OF CHARGE / RAW" />
+                            <TextView android:textSize="12.0sp" android:textColor="@color/md_theme_dark_onSurface" android:id="@id/soc" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                        </LinearLayout>
+                        <LinearLayout android:layout_gravity="center_horizontal" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_weight="1.0">
+                            <TextView android:textSize="8.0sp" android:textColor="@color/dark_yellow" android:id="@id/delta_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="15.0sp" android:text="DELTA" />
+                            <TextView android:textSize="12.0sp" android:textColor="@color/md_theme_dark_onSurface" android:id="@id/spread" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                        </LinearLayout>
+                        <LinearLayout android:layout_gravity="end" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_weight="1.0">
+                            <TextView android:textSize="8.0sp" android:textColor="@color/dark_yellow" android:id="@id/power_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="15.0sp" android:text="POWER" />
+                            <TextView android:textSize="12.0sp" android:textColor="@color/md_theme_dark_onSurface" android:id="@id/power" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                        </LinearLayout>
+                    </LinearLayout>
+                    <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="match_parent">
+                        <LinearLayout android:layout_gravity="start" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_weight="1.0">
+                            <TextView android:textSize="8.0sp" android:textColor="@color/dark_yellow" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="15.0sp" android:text="MIN CELL" />
+                            <TextView android:textSize="12.0sp" android:textColor="@color/md_theme_dark_onSurface" android:id="@id/minCell" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                        </LinearLayout>
+                        <LinearLayout android:layout_gravity="center_horizontal" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_weight="1.0">
+                            <TextView android:textSize="8.0sp" android:textColor="@color/dark_yellow" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="15.0sp" android:text="AVG CELL" />
+                            <TextView android:textSize="12.0sp" android:textColor="@color/md_theme_dark_onSurface" android:id="@id/avgCell" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                        </LinearLayout>
+                        <LinearLayout android:layout_gravity="end" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_weight="1.0">
+                            <TextView android:textSize="8.0sp" android:textColor="@color/dark_yellow" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="15.0sp" android:text="MAX CELL" />
+                            <TextView android:textSize="12.0sp" android:textColor="@color/md_theme_dark_onSurface" android:id="@id/maxCell" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                        </LinearLayout>
+                    </LinearLayout>
+                    <LinearLayout android:layout_gravity="center" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+            <com.github.mikephil.charting.charts.BarChart android:layout_gravity="center|bottom" android:id="@id/barChart" android:layout_width="match_parent" android:layout_height="250.0dp" android:layout_marginLeft="10.0sp" android:layout_marginTop="10.0sp" android:layout_marginRight="15.0sp" />
+        </LinearLayout>
+    </ScrollView>
+    <Button android:id="@id/rescan" android:layout_width="match_parent" android:layout_height="50.0dp" android:layout_marginBottom="30.0dp" android:text="Rescan" android:layout_marginHorizontal="20.0dp" />
+</LinearLayout>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="charge_control_opts">
+        <item>Start charging immediately</item>
+        <item>Stop by setting temporary departure time to the next day</item>
+    </string-array>
+    <string-array name="distance_units">
+        <item>Kilometers</item>
+        <item>Miles</item>
+    </string-array>
+    <string-array name="fuel_units">
+        <item>Liters</item>
+        <item>UK Gallons</item>
+        <item>US Gallons</item>
+    </string-array>
+    <string-array name="temperature_units">
+        <item>Celsius</item>
+        <item>Fahrenheit</item>
+    </string-array>
+    <string-array name="volt_models">
+        <item>2011 - 2012</item>
+        <item>2013 - 2014</item>
+        <item>2015 / ELR 2016</item>
+        <item>2016 - 2018</item>
+        <item>2019</item>
+        <item>Bolt 2017 - 2019</item>
+        <item>Bolt 2020+</item>
+        <item>Bolt EUV</item>
+    </string-array>
+</resources>

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content">
+        <com.google.android.material.card.MaterialCardView android:layout_gravity="center_vertical" android:background="@drawable/card_gradient" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="10.0dp" android:layout_marginVertical="7.0dp" app:strokeWidth="0.20000005dp">
+            <LinearLayout android:orientation="vertical" android:background="@drawable/card_gradient" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_margin="10.0dp">
+                    <LinearLayout android:orientation="vertical" android:padding="10.0dp" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_weight="1.0">
+                        <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content">
+                            <ImageView android:layout_gravity="center_vertical" android:id="@id/lockIcon" android:layout_width="15.0dp" android:layout_height="wrap_content" android:src="@drawable/lock_open_alt_24" android:layout_marginHorizontal="5.0dp" />
+                            <LinearLayout android:layout_gravity="center_vertical" android:id="@id/odoContainer" android:layout_width="match_parent" android:layout_height="wrap_content">
+                                <ImageView android:layout_gravity="center_vertical" android:id="@id/odoIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/speed_24px" android:scaleX="0.8" android:scaleY="0.8" />
+                                <TextView android:textSize="16.0sp" android:layout_gravity="center_vertical" android:id="@id/odometer" android:layout_width="wrap_content" android:layout_height="wrap_content" android:letterSpacing="0.06" android:paddingHorizontal="5.0dp" />
+                            </LinearLayout>
+                            <LinearLayout android:id="@id/healthContainer" android:layout_width="match_parent" android:layout_height="wrap_content">
+                                <ImageView android:layout_gravity="center_vertical" android:id="@id/healthIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/outline_favorite_24" android:scaleX="0.8" android:scaleY="0.8" />
+                                <LinearLayout android:layout_gravity="center_vertical" android:orientation="horizontal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="5.0dp">
+                                    <TextView android:textSize="16.0sp" android:id="@id/capacityPercentMain" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                                    <TextView android:textSize="16.0sp" android:id="@id/capacityAh" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                                </LinearLayout>
+                            </LinearLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+                    <LinearLayout android:layout_gravity="bottom" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_weight="1.0">
+                        <TextView android:textSize="14.0sp" android:textColor="@color/white" android:id="@id/carId" android:layout_width="match_parent" android:layout_height="wrap_content" android:textAllCaps="true" android:textAlignment="textEnd" android:letterSpacing="0.1" android:paddingHorizontal="12.0dp" />
+                        <ImageView android:id="@id/vehicleImage" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView> // Upper box 
+        <com.google.android.material.card.MaterialCardView android:layout_gravity="center_vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:backgroundTintMode="multiply" android:layout_marginHorizontal="10.0dp" android:layout_marginVertical="7.0dp" app:strokeWidth="0.20000005dp">
+            <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+                <LinearLayout android:orientation="vertical" android:background="@drawable/card_gradient" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingVertical="15.0dp">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+                        <androidx.compose.ui.platform.ComposeView android:id="@id/fuel_progressbar" android:layout_width="match_parent" android:layout_height="10.0dp" android:layout_marginHorizontal="20.0dp" />
+                    </LinearLayout>
+                    <LinearLayout android:orientation="horizontal" android:padding="10.0dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+                        <LinearLayout android:layout_gravity="center_vertical" android:id="@id/socContainer" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_weight="1.0">
+                            <ImageView android:layout_gravity="center_vertical" android:id="@id/batteryIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/battery_full_24px" android:scaleX="0.8" android:scaleY="0.8" />
+                            <LinearLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content">
+                                <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+                                    <TextView android:textSize="14.0sp" android:id="@id/socMain" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                                    <TextView android:textSize="9.0dp" android:id="@id/socUnit" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="3.0sp" />
+                                </LinearLayout>
+                                <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+                                    <TextView android:textSize="14.0sp" android:id="@id/rangeMain" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                                    <TextView android:textSize="9.0sp" android:id="@id/rangeUnit" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="3.0sp" />
+                                </LinearLayout>
+                            </LinearLayout>
+                        </LinearLayout>
+                        <LinearLayout android:layout_gravity="center_vertical" android:id="@id/chargeContainer" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_weight="1.0">
+                            <ImageView android:layout_gravity="center_vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/outline_bolt_24" android:scaleY="1.0" />
+                            <LinearLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content">
+                                <TextView android:textSize="9.0sp" android:id="@id/chgState" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginVertical="3.0dp" />
+                                <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content">
+                                    <TextView android:textSize="14.0sp" android:id="@id/chgPower" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                                    <TextView android:textSize="9.0sp" android:id="@id/chgPowerUnit" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="3.0sp" />
+                                </LinearLayout>
+                            </LinearLayout>
+                        </LinearLayout>
+                        <LinearLayout android:layout_gravity="center_vertical" android:id="@id/fuelContainer" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_weight="1.0">
+                            <ImageView android:layout_gravity="center_vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/outline_local_gas_station_24" android:scaleY="0.8" />
+                            <LinearLayout android:orientation="vertical" android:padding="5.0dp" android:layout_width="wrap_content" android:layout_height="wrap_content">
+                                <LinearLayout android:orientation="horizontal" android:layout_width="wrap_content" android:layout_height="wrap_content">
+                                    <TextView android:textSize="14.0sp" android:textStyle="bold" android:id="@id/fuelPercentMain" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                                    <TextView android:textSize="9.0sp" android:id="@id/fuelPercentUnit" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="3.0sp" />
+                                </LinearLayout>
+                                <LinearLayout android:orientation="horizontal" android:layout_width="wrap_content" android:layout_height="wrap_content">
+                                    <TextView android:textSize="14.0sp" android:textStyle="bold" android:id="@id/fuelLiter" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                                    <TextView android:textSize="9.0sp" android:id="@id/fuelLiterUnit" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="3.0sp" />
+                                </LinearLayout>
+                            </LinearLayout>
+                        </LinearLayout>
+                        <LinearLayout android:layout_gravity="center_vertical" android:id="@id/ecoContainer" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_weight="1.0">
+                            <ImageView android:layout_gravity="center_vertical" android:id="@id/ecoIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/eco_24px" android:scaleX="0.8" android:scaleY="0.8" />
+                            <LinearLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content">
+                                <LinearLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content">
+                                    <TextView android:textSize="9.0sp" android:id="@id/evEcoUnit" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" />
+                                    <TextView android:textSize="14.0sp" android:textStyle="bold" android:id="@id/evEco" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" />
+                                </LinearLayout>
+                                <LinearLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content">
+                                    <TextView android:textSize="14.0sp" android:textStyle="bold" android:id="@id/fuelEco" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" />
+                                    <TextView android:textSize="9.0sp" android:id="@id/fuelEcoUnit" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" />
+                                </LinearLayout>
+                            </LinearLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+                        <androidx.compose.ui.platform.ComposeView android:id="@id/compose_view" android:layout_width="match_parent" android:layout_height="10.0dp" android:layout_marginHorizontal="20.0dp" />
+                    </LinearLayout>
+                </LinearLayout>
+                <include android:id="@id/premiumOverlay" android:layout_width="match_parent" android:layout_height="150.0dp" layout="@layout/premium_overlay_small" />
+            </FrameLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
+    <com.google.android.material.card.MaterialCardView android:layout_gravity="center_vertical" android:id="@id/guideCard" android:layout_width="match_parent" android:layout_height="match_parent" android:backgroundTintMode="multiply" android:layout_marginHorizontal="10.0dp" android:layout_marginVertical="7.0dp" app:strokeWidth="0.20000005dp">
+        <LinearLayout android:orientation="vertical" android:background="@drawable/card_gradient" android:layout_width="match_parent" android:layout_height="match_parent">
+            <me.relex.circleindicator.CircleIndicator3 android:id="@id/indicator" android:layout_width="match_parent" android:layout_height="32.0dp" app:ci_gravity="center" app:ci_height="5.0dp" app:ci_margin="5.0dp" app:ci_orientation="horizontal" app:ci_width="5.0dp" />
+            <androidx.viewpager2.widget.ViewPager2 android:gravity="center" android:id="@id/pager" android:layout_width="match_parent" android:layout_height="match_parent" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+</LinearLayout>

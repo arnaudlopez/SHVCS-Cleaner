@@ -1,0 +1,25 @@
+version: 3.0.1
+apkFileName: Voltage_2.1.1_APKPure.xapk
+doNotCompress:
+- png
+- config.ar.apk
+- config.arm64_v8a.apk
+- config.de.apk
+- config.en.apk
+- config.es.apk
+- config.fr.apk
+- config.hi.apk
+- config.in.apk
+- config.it.apk
+- config.ja.apk
+- config.ko.apk
+- config.my.apk
+- config.pt.apk
+- config.ru.apk
+- config.th.apk
+- config.tr.apk
+- config.vi.apk
+- config.xxxhdpi.apk
+- config.zh.apk
+- io.tripovan.voltage.apk
+- manifest.json
