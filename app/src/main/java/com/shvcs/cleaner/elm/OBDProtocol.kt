@@ -885,46 +885,125 @@ object OBDProtocol {
     }
 
     /**
-     * Clear all DTCs using OBD-II Mode 04 (generic, emission-related).
-     * Uses auto-detect protocol.
+     * Clear all DTCs using the comprehensive Infocar approach:
+     *   1. OBD-II Mode 04 (generic broadcast clear)
+     *   2. UDS Service 14 with multiple DTC group variants per module
      *
-     * @return true if clear was successful
+     * Modules scanned: 760, 720, 7E0, 7E1, 7E2, 7E3
+     * Service 14 variants: FFFFFF, FFFF, FF00, C000FF, 4000FF, 8000FF, 4000
+     *
+     * @return true if at least one clear was successful
      */
     suspend fun clearAllDtcsGeneric(elm: ElmWifiManager, listener: Listener): Boolean {
+        var anySuccess = false
+
         try {
             listener.onLog("")
-            listener.onLog("═══ CLEARING DTCs — OBD-II MODE 04 ═══")
+            listener.onLog("═══ CLEARING DTCs — COMPREHENSIVE GENERIC ═══")
 
-            // Reset to auto protocol for generic OBD-II
-            listener.onLog("► AT SP 0 (Auto Protocol)")
-            elm.sendCommand("AT SP 0")
-            kotlinx.coroutines.delay(200)
+            // ── Step 1: Configure ELM327 ──
+            listener.onLog("► ATSP6 (CAN 11-bit 500kbps)")
+            elm.sendCommand("ATSP6", timeoutMs = 2000L)
+            kotlinx.coroutines.delay(100)
+            listener.onLog("► ATH1 (Headers ON)")
+            elm.sendCommand("ATH1", timeoutMs = 2000L)
+            kotlinx.coroutines.delay(100)
+            listener.onLog("► ATS0 (Spaces OFF)")
+            elm.sendCommand("ATS0", timeoutMs = 2000L)
+            kotlinx.coroutines.delay(100)
 
-            listener.onLog("► $OBD2_CLEAR_DTC_COMMAND (Clear DTCs — OBD-II Mode 04)")
-            val result = elm.sendCommand(OBD2_CLEAR_DTC_COMMAND, timeoutMs = 8000L)
-
-            result.onSuccess { response ->
-                listener.onLog("  ◄ $response")
-                val cleanResponse = response.replace(" ", "").lowercase()
-
-                if (cleanResponse.contains(OBD2_CLEAR_RESPONSE_MARKER.lowercase())) {
-                    listener.onLog("  ✓ OBD-II generic DTCs cleared")
-                    return true
+            // ── Step 2: OBD-II Mode 04 broadcast clear ──
+            listener.onLog("")
+            listener.onLog("── Mode 04: OBD-II Broadcast Clear ──")
+            listener.onLog("► $OBD2_CLEAR_DTC_COMMAND (Clear DTCs — Mode 04)")
+            elm.sendCommand(OBD2_CLEAR_DTC_COMMAND, timeoutMs = 8000L).onSuccess { response ->
+                listener.onLog("  ◄ ${response.trim()}")
+                if (response.replace(" ", "").lowercase().contains(OBD2_CLEAR_RESPONSE_MARKER.lowercase())) {
+                    listener.onLog("  ✓ Mode 04 clear success")
+                    anySuccess = true
                 } else {
-                    val uds = UdsResponse.parse(response)
-                    listener.onEcuResponse(uds)
-                    logUdsResponse(uds, listener)
-                    listener.onLog("  ⚠ OBD-II clear response unexpected: $response")
-                    return false
+                    listener.onLog("  ⚠ Mode 04 response: ${response.trim()}")
                 }
             }.onFailure { e ->
-                listener.onLog("  ✗ Error: ${e.message}")
-                return false
+                listener.onLog("  ⚠ Mode 04 error: ${e.message}")
             }
+            kotlinx.coroutines.delay(500)
+
+            // ── Step 3: Per-module UDS Service 14 variants ──
+            val modules = listOf(
+                "760" to "BCM (Carrosserie)",
+                "720" to "Instrument Cluster",
+                "7E0" to "ECM (Moteur)",
+                "7E1" to "TCM (Transmission)",
+                "7E2" to "ABS / ESP",
+                "7E3" to "Airbag (SRS)",
+            )
+
+            // Service 14 DTC group variants (from Infocar PCAP analysis)
+            val clearVariants = listOf(
+                "14FFFFFF" to "All DTCs",
+                "14FFFF" to "All DTCs (short)",
+                "14FF00" to "All DTCs (alt)",
+                "14C000FF" to "Chassis DTCs",
+                "144000FF" to "Network DTCs",
+                "148000FF" to "Body DTCs",
+                "144000" to "Network DTCs (short)",
+            )
+
+            for ((moduleId, moduleName) in modules) {
+                listener.onLog("")
+                listener.onLog("── Module: $moduleName ($moduleId) ──")
+                listener.onLog("► ATSH$moduleId")
+                elm.sendCommand("ATSH$moduleId", timeoutMs = 2000L)
+                kotlinx.coroutines.delay(100)
+
+                // Setup flow control for this module
+                listener.onLog("► ATFCSH$moduleId")
+                elm.sendCommand("ATFCSH$moduleId", timeoutMs = 2000L)
+                listener.onLog("► ATFCSD300000")
+                elm.sendCommand("ATFCSD300000", timeoutMs = 2000L)
+                listener.onLog("► ATFCSM1")
+                elm.sendCommand("ATFCSM1", timeoutMs = 2000L)
+                kotlinx.coroutines.delay(100)
+
+                for ((cmd, desc) in clearVariants) {
+                    listener.onLog("► $cmd ($desc)")
+                    elm.sendCommand(cmd, timeoutMs = 5000L).onSuccess { response ->
+                        val clean = response.replace(" ", "").replace("\r", "").replace("\n", "").lowercase()
+                        listener.onLog("  ◄ ${response.trim()}")
+                        when {
+                            clean.contains("54") -> {
+                                listener.onLog("  ✓ $desc cleared!")
+                                anySuccess = true
+                            }
+                            clean.contains("nodata") -> {
+                                // Silent — module may not support this variant
+                            }
+                            clean.contains("7f14") -> {
+                                val nrc = clean.substringAfter("7f14").take(2)
+                                listener.onLog("  ⚠ NRC: $nrc")
+                            }
+                        }
+                    }.onFailure { /* ignore */ }
+                    kotlinx.coroutines.delay(100)
+                }
+
+                // Reset flow control
+                elm.sendCommand("ATFCSM0", timeoutMs = 2000L)
+                kotlinx.coroutines.delay(100)
+            }
+
+            listener.onLog("")
+            if (anySuccess) {
+                listener.onLog("✅ Generic DTC clear completed — at least one clear succeeded")
+            } else {
+                listener.onLog("⚠ No clear commands returned positive response")
+            }
+
         } catch (e: Exception) {
             listener.onLog("  ✗ Error: ${e.message}")
         }
-        return false
+        return anySuccess
     }
 
     /**
