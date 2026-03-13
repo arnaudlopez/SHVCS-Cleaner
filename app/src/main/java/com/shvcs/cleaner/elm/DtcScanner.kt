@@ -444,7 +444,10 @@ object DtcScanner {
         listener.onLog("  ✓ Key computed: $key (from seed $extractedSeed)")
 
         // ── Step 3: Submit key ──
-        val keyCommand = "042702$key"
+        // IMPORTANT: DtcScanner uses default ATCAF1 (auto-formatting ON).
+        // Do NOT add ISO-TP length prefix (04) — the ELM327 handles framing.
+        // Sending 042702... causes double-framing → ECU receives Service 04 → 7F0412.
+        val keyCommand = "2702$key"
         listener.onLog("► $keyCommand (Submit Key)")
         val keyResult = elm.sendCommand(keyCommand, timeoutMs = 5000L)
 

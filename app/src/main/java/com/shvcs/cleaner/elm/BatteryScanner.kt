@@ -228,7 +228,10 @@ object BatteryScanner {
         listener.onLog("  ✓ Key: $key")
 
         // ── Submit key ──
-        val keyCmd = "042702$key"
+        // IMPORTANT: BatteryScanner uses ATCAF1 (auto-formatting ON), so the
+        // ELM327 adds ISO-TP framing automatically. Do NOT add length prefix
+        // (04) — that causes double-framing and ECU interprets 04 as Service 04!
+        val keyCmd = "2702$key"
         listener.onLog("► $keyCmd (Submit Key)")
         val keyResult = elm.sendCommand(keyCmd, timeoutMs = 5000L)
 
@@ -498,11 +501,19 @@ object BatteryScanner {
                 }
             }
 
-            // ── Step 10: Setup flow control + read Cell Voltages (1ADF) ──
+            // ── Step 11+: Setup flow control + read Cell Voltages (1ADF) ──
             step++
             listener.onProgress(step, TOTAL_SCAN_STEPS, "Scanning cell voltages...")
             listener.onLog("")
             listener.onLog("═══ CELL VOLTAGE SCAN ═══")
+
+            // Switch to BECM direct header + receive address (Voltage Q0 method)
+            setHeader(elm, "24C", listener)
+            listener.onLog("► ATCRA64C (Receive Address → BECM)")
+            elm.sendCommand("ATCRA64C", timeoutMs = 2000L).onSuccess { resp ->
+                listener.onLog("  ◄ ${resp.trim()}")
+            }
+            kotlinx.coroutines.delay(100)
 
             // Setup BECM flow control for multi-frame ISO-TP read
             if (setupFlowControl(elm, listener)) {
@@ -522,6 +533,11 @@ object BatteryScanner {
             } else {
                 listener.onLog("  ⚠ Flow control setup failed — skipping cell voltages")
             }
+
+            // Clear receive address filter
+            listener.onLog("► ATCRA (Clear receive filter)")
+            elm.sendCommand("ATCRA", timeoutMs = 2000L)
+            kotlinx.coroutines.delay(100)
 
             if (data.cellVoltages.isNotEmpty()) {
                 listener.onLog("  ✓ ${data.cellVoltages.size} cells scanned")
