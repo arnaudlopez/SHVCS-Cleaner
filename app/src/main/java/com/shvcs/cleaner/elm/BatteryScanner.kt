@@ -507,17 +507,31 @@ object BatteryScanner {
             listener.onLog("")
             listener.onLog("═══ CELL VOLTAGE SCAN ═══")
 
-            // Switch to BECM direct header + receive address (Voltage Q0 method)
-            setHeader(elm, "24C", listener)
-            listener.onLog("► ATCRA64C (Receive Address → BECM)")
-            elm.sendCommand("ATCRA64C", timeoutMs = 2000L).onSuccess { resp ->
-                listener.onLog("  ◄ ${resp.trim()}")
-            }
-            kotlinx.coroutines.delay(100)
+            // Method r0: Read on HPCM2 (7E4) with FC matching 7E4
+            // This is Voltage's primary method for cell voltages
+            listener.onLog("── Method r0: HPCM2 (7E4) ──")
+            setHeader(elm, "7E4", listener)
 
-            // Setup BECM flow control for multi-frame ISO-TP read
-            if (setupFlowControl(elm, listener)) {
-                val cellResponse = requestPid(elm, Pids.HPCM2_CELLS, "Cell Voltages", listener, timeoutMs = 15000L)
+            // Setup flow control for HPCM2 (FC header must match send header)
+            val r0FcCommands = listOf(
+                "ATFCSH7E4" to "Flow Control Header → HPCM2",
+                "ATFCSD300014" to "FC Data: BS=0, STmin=20ms",
+                "ATFCSM1" to "FC Mode: User-defined",
+            )
+            var fcOk = true
+            for ((cmd, desc) in r0FcCommands) {
+                listener.onLog("► $cmd ($desc)")
+                elm.sendCommand(cmd, timeoutMs = 2000L).onSuccess { resp ->
+                    listener.onLog("  ◄ ${resp.trim()}")
+                }.onFailure { e ->
+                    listener.onLog("  ✗ $desc failed: ${e.message}")
+                    fcOk = false
+                }
+                kotlinx.coroutines.delay(100)
+            }
+
+            if (fcOk) {
+                val cellResponse = requestPid(elm, Pids.HPCM2_CELLS, "Cell Voltages (r0)", listener, timeoutMs = 15000L)
                 cellResponse?.let { BatteryDataParser.parseCellVoltages(it) }?.let {
                     data = data.copy(
                         cellVoltages = it.cellVoltages,
@@ -527,17 +541,38 @@ object BatteryScanner {
                         cellDelta = it.cellDelta
                     )
                 }
-
-                // Reset flow control
                 resetFlowControl(elm, listener)
-            } else {
-                listener.onLog("  ⚠ Flow control setup failed — skipping cell voltages")
             }
 
-            // Clear receive address filter
-            listener.onLog("► ATCRA (Clear receive filter)")
-            elm.sendCommand("ATCRA", timeoutMs = 2000L)
-            kotlinx.coroutines.delay(100)
+            // Fallback: Method t0 — Read on BECM direct (24C) if r0 failed
+            if (data.cellVoltages.isEmpty()) {
+                listener.onLog("── Method t0: BECM direct (24C) ──")
+                setHeader(elm, "24C", listener)
+                listener.onLog("► ATCRA64C (Receive Address → BECM)")
+                elm.sendCommand("ATCRA64C", timeoutMs = 2000L).onSuccess { resp ->
+                    listener.onLog("  ◄ ${resp.trim()}")
+                }
+                kotlinx.coroutines.delay(100)
+
+                if (setupFlowControl(elm, listener)) {
+                    val cellResponse = requestPid(elm, Pids.HPCM2_CELLS, "Cell Voltages (t0)", listener, timeoutMs = 15000L)
+                    cellResponse?.let { BatteryDataParser.parseCellVoltages(it) }?.let {
+                        data = data.copy(
+                            cellVoltages = it.cellVoltages,
+                            cellMin = it.cellMin,
+                            cellMax = it.cellMax,
+                            cellAvg = it.cellAvg,
+                            cellDelta = it.cellDelta
+                        )
+                    }
+                    resetFlowControl(elm, listener)
+                }
+
+                // Clear receive address filter
+                listener.onLog("► ATCRA (Clear receive filter)")
+                elm.sendCommand("ATCRA", timeoutMs = 2000L)
+                kotlinx.coroutines.delay(100)
+            }
 
             if (data.cellVoltages.isNotEmpty()) {
                 listener.onLog("  ✓ ${data.cellVoltages.size} cells scanned")
@@ -546,7 +581,7 @@ object BatteryScanner {
                     "Avg: ${"%.3f".format(data.cellAvg)}V | " +
                     "Delta: ${"%.1f".format(data.cellDelta)} mV")
             } else {
-                listener.onLog("  ⚠ No cell voltage data received")
+                listener.onLog("  ⚠ No cell voltage data received (tried r0 + t0)")
             }
 
             // ── Step 11: Restore HPCM2 header ──
